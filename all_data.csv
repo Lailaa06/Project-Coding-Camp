@@ -1,0 +1,37 @@
+import pandas as pd
+
+# Load datasets
+orders = pd.read_csv("/mnt/data/orders_dataset.csv")
+order_items = pd.read_csv("/mnt/data/order_items_dataset.csv")
+order_payments = pd.read_csv("/mnt/data/order_payments_dataset.csv")
+order_reviews = pd.read_csv("/mnt/data/order_reviews_dataset.csv")
+customers = pd.read_csv("/mnt/data/customers_dataset.csv")
+sellers = pd.read_csv("/mnt/data/sellers_dataset.csv")
+products = pd.read_csv("/mnt/data/products_dataset.csv")
+product_category_translation = pd.read_csv("/mnt/data/product_category_name_translation.csv")
+geolocation = pd.read_csv("/mnt/data/geolocation_dataset.csv")
+
+# Merge datasets
+# 1. Menggabungkan order_items dengan orders berdasarkan order_id
+all_data = order_items.merge(orders, on="order_id", how="left")
+
+# 2. Menggabungkan dengan order_payments berdasarkan order_id
+all_data = all_data.merge(order_payments, on="order_id", how="left")
+
+# 3. Menggabungkan dengan order_reviews berdasarkan order_id
+all_data = all_data.merge(order_reviews, on="order_id", how="left")
+
+# 4. Menggabungkan dengan customers berdasarkan customer_id
+all_data = all_data.merge(customers, on="customer_id", how="left")
+
+# 5. Menggabungkan dengan sellers berdasarkan seller_id
+all_data = all_data.merge(sellers, on="seller_id", how="left")
+
+# 6. Menggabungkan dengan products berdasarkan product_id
+all_data = all_data.merge(products, on="product_id", how="left")
+
+# 7. Menggabungkan dengan product_category_translation berdasarkan product_category_name
+all_data = all_data.merge(product_category_translation, on="product_category_name", how="left")
+
+# Menampilkan beberapa baris pertama dari all_data untuk melihat hasil penggabungan
+all_data.head()
