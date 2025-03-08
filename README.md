@@ -21,9 +21,7 @@ Dashboard interaktif dikembangkan menggunakan **Streamlit** untuk memudahkan eks
 ## **Struktur Direktori**  
 ```
 📦 analisis-penjualan
-├── 📂 dashboard/               # File untuk dashboard Streamlit
 │   ├── dashboard.py            # Script utama dashboard
-│   ├── main_data.csv           # Data hasil preprocessing
 │
 ├── 📂 data/                    # Dataset mentah
 │   ├── orders.csv
@@ -53,7 +51,7 @@ pip install -r requirements.txt
 Gunakan perintah berikut di terminal untuk menjalankan aplikasi:  
 
 ```bash
-streamlit run dashboard/dashboard.py
+streamlit run dashboard.py
 ```
 
 Dashboard akan terbuka secara otomatis di browser.  
