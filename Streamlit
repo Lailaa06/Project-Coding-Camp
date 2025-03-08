@@ -1,0 +1,20 @@
+
+submission
+├── dashboard _(untuk file Streamlit)_  
+│   ├── `dashboard.py`  
+│   ├── `main_data.csv` _(jika ingin menyimpan hasil gabungan)_  
+├── data _(untuk dataset mentah)_  
+│   ├── `orders_dataset.csv`  
+│   ├── `order_items_dataset.csv`  
+│   ├── `order_payments_dataset.csv`  
+│   ├── `order_reviews_dataset.csv`  
+│   ├── `customers_dataset.csv`  
+│   ├── `sellers_dataset.csv`  
+│   ├── `products_dataset.csv`  
+│   ├── `product_category_name_translation.csv`  
+│   ├── `geolocation_dataset.csv`  
+├── `all_data.csv` _(hasil gabungan dataset, bisa ditaruh di root folder)_  
+├── `notebook.ipynb` _(jika ada analisis tambahan)_  
+├── `README.md` _(penjelasan proyek)_  
+├── `requirements.txt` _(library yang dibutuhkan)_  
+└── `url.txt` _(opsional, jika ada link deployment atau sumber data)_  
