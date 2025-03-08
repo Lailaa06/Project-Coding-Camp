@@ -1,0 +1,47 @@
+import pandas as pd
+
+# Load datasets
+orders = pd.read_csv("/mnt/data/orders_dataset.csv")
+order_items = pd.read_csv("/mnt/data/order_items_dataset.csv")
+order_payments = pd.read_csv("/mnt/data/order_payments_dataset.csv")
+order_reviews = pd.read_csv("/mnt/data/order_reviews_dataset.csv")
+customers = pd.read_csv("/mnt/data/customers_dataset.csv")
+sellers = pd.read_csv("/mnt/data/sellers_dataset.csv")
+products = pd.read_csv("/mnt/data/products_dataset.csv")
+product_category_translation = pd.read_csv("/mnt/data/product_category_name_translation.csv")
+geolocation = pd.read_csv("/mnt/data/geolocation_dataset.csv")
+
+# Merge datasets
+all_data = order_items.merge(orders, on="order_id", how="left") \
+    .merge(order_payments, on="order_id", how="left") \
+    .merge(order_reviews, on="order_id", how="left") \
+    .merge(customers, on="customer_id", how="left") \
+    .merge(sellers, on="seller_id", how="left") \
+    .merge(products, on="product_id", how="left") \
+    .merge(product_category_translation, on="product_category_name", how="left")
+
+# Data Cleaning
+# 1. Cek dan isi missing values
+all_data.fillna({
+    "review_score": all_data["review_score"].median(),
+    "price": all_data["price"].median(),
+    "payment_value": all_data["payment_value"].median()
+}, inplace=True)
+
+# 2. Hapus duplikasi
+all_data.drop_duplicates(inplace=True)
+
+# 3. Perbaiki inkonsistensi data
+all_data["order_status"] = all_data["order_status"].replace("canceleddd", "canceled")
+
+# 4. Ubah format data
+all_data["order_purchase_timestamp"] = pd.to_datetime(all_data["order_purchase_timestamp"])
+all_data["price"] = pd.to_numeric(all_data["price"], errors="coerce")
+
+# 5. Hapus kolom yang tidak diperlukan
+all_data.drop(columns=["customer_unique_id", "geolocation_lat", "geolocation_lng"], inplace=True)
+
+# Simpan data yang sudah dibersihkan
+all_data.to_csv("/mnt/data/all_data_cleaned.csv", index=False)
+
+print("Data cleaning selesai! File disimpan sebagai all_data_cleaned.csv.")
