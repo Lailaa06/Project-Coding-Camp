@@ -1,42 +1,54 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
-# ---- Setup Streamlit ----
-st.title("📊 Dashboard Penjualan E-Commerce")
-st.write("Analisis data penjualan berdasarkan kategori produk.")
-
-# ---- Load Data ----
+# Load cleaned dataset
 @st.cache_data
 def load_data():
-    orders_df = pd.read_csv("/mnt/data/orders_cleaned.csv")
-    review_df = pd.read_csv("/mnt/data/review_cleaned.csv")
-    item_df = pd.read_csv("/mnt/data/item_cleaned.csv")
-    produk_df = pd.read_csv("/mnt/data/produk_cleaned.csv")
-    return orders_df, review_df, item_df, produk_df
+    df_rfm = pd.read_csv("cleaned_rfm_data.csv")  # Gantilah dengan file hasil analisismu
+    return df_rfm
 
-orders_df, review_df, item_df, produk_df = load_data()
+df_rfm = load_data()
 
-# ---- Transformasi Data ----
-sales_per_category = item_df.groupby("product_category_name")["order_id"].count().sort_values(ascending=False)
+# Sidebar Filters
+years = df_rfm['year'].unique() if 'year' in df_rfm.columns else []
+selected_year = st.sidebar.selectbox("Filter Tahun", years) if years.any() else None
 
-# ---- Visualisasi Data ----
-st.subheader("🔹 Produk Kategori dengan Total Penjualan Tertinggi")
-st.bar_chart(sales_per_category)
+categories = df_rfm['category'].unique() if 'category' in df_rfm.columns else []
+selected_category = st.sidebar.selectbox("Pilih Kategori Produk", categories) if categories.any() else None
 
-st.write("Kategori dengan total penjualan tertinggi berdasarkan data yang sudah dibersihkan.")
+# Filter Data
+if selected_year:
+    df_rfm = df_rfm[df_rfm['year'] == selected_year]
+if selected_category:
+    df_rfm = df_rfm[df_rfm['category'] == selected_category]
 
-# ---- Tren Penjualan Per Tahun ----
-st.subheader("🔹 Tren Penjualan Tiap Tahun")
-orders_df["order_purchase_timestamp"] = pd.to_datetime(orders_df["order_purchase_timestamp"])
-orders_df["year"] = orders_df["order_purchase_timestamp"].dt.year
-sales_per_year = orders_df.groupby("year")["order_id"].count()
+# Dashboard Title
+st.title("📊 RFM Analysis Dashboard")
 
-fig, ax = plt.subplots()
-ax.plot(sales_per_year.index, sales_per_year.values, marker="o", linestyle="-")
-plt.xlabel("Tahun")
-plt.ylabel("Jumlah Penjualan")
-plt.title("Tren Penjualan Per Tahun")
-st.pyplot(fig)
+# Pie Chart Segmen Pelanggan
+st.subheader("Distribusi Segmen Pelanggan")
+fig_segment = px.pie(df_rfm, names='Segment', title='Distribusi Segmen Pelanggan', hole=0.4)
+st.plotly_chart(fig_segment)
 
-st.write("📌 Dari grafik di atas, kita bisa melihat perkembangan tren penjualan setiap tahun.")
+# Scatter Plot: Frequency vs Monetary
+st.subheader("Hubungan Frequency vs Monetary")
+fig_scatter = px.scatter(df_rfm, x='Frequency', y='Monetary', color='Segment', title='Scatter Plot Frequency vs Monetary')
+st.plotly_chart(fig_scatter)
+
+# Histogram Recency, Frequency, Monetary
+st.subheader("Distribusi Recency")
+fig_recency = px.histogram(df_rfm, x='Recency', nbins=30, title='Distribusi Recency')
+st.plotly_chart(fig_recency)
+
+st.subheader("Distribusi Frequency")
+fig_frequency = px.histogram(df_rfm, x='Frequency', nbins=30, title='Distribusi Frequency')
+st.plotly_chart(fig_frequency)
+
+st.subheader("Distribusi Monetary")
+fig_monetary = px.histogram(df_rfm, x='Monetary', nbins=30, title='Distribusi Monetary')
+st.plotly_chart(fig_monetary)
+
+# Menampilkan Dataframe
+st.subheader("📋 Data Pelanggan RFM")
+st.dataframe(df_rfm)
