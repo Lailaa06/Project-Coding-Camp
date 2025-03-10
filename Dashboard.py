@@ -1,54 +1,70 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Load cleaned dataset
-@st.cache_data
-def load_data():
-    df_rfm = pd.read_csv("cleaned_rfm_data.csv")  # Gantilah dengan file hasil analisismu
-    return df_rfm
+# ---- Setup Streamlit ----
+st.title("📊 Dashboard Penjualan E-Commerce")
+st.write("Analisis data penjualan dan segmentasi pelanggan berdasarkan RFM Analysis.")
 
-df_rfm = load_data()
+# ---- Load Data ----
+orders = pd.read_csv("/mnt/data/orders_cleaned.csv")
+order_items = pd.read_csv("/mnt/data/item_cleaned.csv")
+payments = pd.read_csv("/mnt/data/review_cleaned.csv")
+customers = pd.read_csv("/mnt/data/produk_cleaned.csv")
 
-# Sidebar Filters
-years = df_rfm['year'].unique() if 'year' in df_rfm.columns else []
-selected_year = st.sidebar.selectbox("Filter Tahun", years) if years.any() else None
+# ---- RFM Analysis ----
+orders['order_purchase_timestamp'] = pd.to_datetime(orders['order_purchase_timestamp'])
+rfm_data = orders[['customer_id', 'order_id', 'order_purchase_timestamp']]
 
-categories = df_rfm['category'].unique() if 'category' in df_rfm.columns else []
-selected_category = st.sidebar.selectbox("Pilih Kategori Produk", categories) if categories.any() else None
+max_date = rfm_data['order_purchase_timestamp'].max()
+recency = rfm_data.groupby('customer_id').order_purchase_timestamp.max().reset_index()
+recency['Recency'] = (max_date - recency['order_purchase_timestamp']).dt.days
 
-# Filter Data
-if selected_year:
-    df_rfm = df_rfm[df_rfm['year'] == selected_year]
-if selected_category:
-    df_rfm = df_rfm[df_rfm['category'] == selected_category]
+frequency = rfm_data.groupby('customer_id').order_id.nunique().reset_index()
+frequency.columns = ['customer_id', 'Frequency']
 
-# Dashboard Title
-st.title("📊 RFM Analysis Dashboard")
+monetary = payments.groupby('customer_id').payment_value.sum().reset_index()
+monetary.columns = ['customer_id', 'Monetary']
 
-# Pie Chart Segmen Pelanggan
-st.subheader("Distribusi Segmen Pelanggan")
-fig_segment = px.pie(df_rfm, names='Segment', title='Distribusi Segmen Pelanggan', hole=0.4)
-st.plotly_chart(fig_segment)
+df_rfm = recency.merge(frequency, on='customer_id').merge(monetary, on='customer_id')
+df_rfm['R_Score'] = pd.qcut(df_rfm['Recency'], q=4, labels=[4, 3, 2, 1])
+df_rfm['F_Score'] = pd.qcut(df_rfm['Frequency'].rank(method='first'), q=4, labels=[1, 2, 3, 4])
+df_rfm['M_Score'] = pd.qcut(df_rfm['Monetary'], q=4, labels=[1, 2, 3, 4])
+df_rfm['RFM_Score'] = df_rfm[['R_Score', 'F_Score', 'M_Score']].sum(axis=1)
 
-# Scatter Plot: Frequency vs Monetary
-st.subheader("Hubungan Frequency vs Monetary")
-fig_scatter = px.scatter(df_rfm, x='Frequency', y='Monetary', color='Segment', title='Scatter Plot Frequency vs Monetary')
-st.plotly_chart(fig_scatter)
+def rfm_segment(score):
+    if score >= 10:
+        return 'Best Customers'
+    elif score >= 8:
+        return 'Loyal Customers'
+    elif score >= 6:
+        return 'Potential Loyalist'
+    elif score >= 4:
+        return 'At Risk'
+    else:
+        return 'Lost Customers'
 
-# Histogram Recency, Frequency, Monetary
-st.subheader("Distribusi Recency")
-fig_recency = px.histogram(df_rfm, x='Recency', nbins=30, title='Distribusi Recency')
-st.plotly_chart(fig_recency)
+df_rfm['Segment'] = df_rfm['RFM_Score'].astype(int).apply(rfm_segment)
 
-st.subheader("Distribusi Frequency")
-fig_frequency = px.histogram(df_rfm, x='Frequency', nbins=30, title='Distribusi Frequency')
-st.plotly_chart(fig_frequency)
+# ---- Fitur Interaktif ----
+st.sidebar.header("🔍 Filter")
+segment_filter = st.sidebar.multiselect("Pilih Segmen Pelanggan:", options=df_rfm['Segment'].unique(), default=df_rfm['Segment'].unique())
 
-st.subheader("Distribusi Monetary")
-fig_monetary = px.histogram(df_rfm, x='Monetary', nbins=30, title='Distribusi Monetary')
-st.plotly_chart(fig_monetary)
+filtered_rfm = df_rfm[df_rfm['Segment'].isin(segment_filter)]
 
-# Menampilkan Dataframe
-st.subheader("📋 Data Pelanggan RFM")
-st.dataframe(df_rfm)
+st.subheader("📌 Distribusi Recency, Frequency, dan Monetary")
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+sns.histplot(filtered_rfm['Recency'], bins=30, kde=True, ax=axes[0])
+axes[0].set_title('Distribusi Recency')
+sns.histplot(filtered_rfm['Frequency'], bins=30, kde=True, ax=axes[1])
+axes[1].set_title('Distribusi Frequency')
+sns.histplot(filtered_rfm['Monetary'], bins=30, kde=True, ax=axes[2])
+axes[2].set_title('Distribusi Monetary')
+st.pyplot(fig)
+
+st.write("📌 **Jumlah Pelanggan per Segmen:**")
+st.bar_chart(filtered_rfm['Segment'].value_counts())
+
+st.write("📌 **Tabel RFM Pelanggan:**")
+st.dataframe(filtered_rfm)
