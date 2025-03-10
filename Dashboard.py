@@ -3,68 +3,65 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# ---- Setup Streamlit ----
-st.title("📊 Dashboard Penjualan E-Commerce")
-st.write("Analisis data penjualan dan segmentasi pelanggan berdasarkan RFM Analysis.")
-
-# ---- Load Data ----
+# Load cleaned datasets
 orders = pd.read_csv("/mnt/data/orders_cleaned.csv")
 order_items = pd.read_csv("/mnt/data/item_cleaned.csv")
-payments = pd.read_csv("/mnt/data/review_cleaned.csv")
-customers = pd.read_csv("/mnt/data/produk_cleaned.csv")
+products = pd.read_csv("/mnt/data/produk_cleaned.csv")
 
-# ---- RFM Analysis ----
-orders['order_purchase_timestamp'] = pd.to_datetime(orders['order_purchase_timestamp'])
-rfm_data = orders[['customer_id', 'order_id', 'order_purchase_timestamp']]
+# Merge datasets
+df = orders.merge(order_items, on="order_id", how="left")
+df = df.merge(products, on="product_id", how="left")
 
-max_date = rfm_data['order_purchase_timestamp'].max()
-recency = rfm_data.groupby('customer_id').order_purchase_timestamp.max().reset_index()
-recency['Recency'] = (max_date - recency['order_purchase_timestamp']).dt.days
+# Convert date column to datetime
+df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
 
-frequency = rfm_data.groupby('customer_id').order_id.nunique().reset_index()
-frequency.columns = ['customer_id', 'Frequency']
+# Sidebar filters
+st.sidebar.header("Filters")
+start_date = st.sidebar.date_input("Start Date", df['order_purchase_timestamp'].min())
+end_date = st.sidebar.date_input("End Date", df['order_purchase_timestamp'].max())
+category_filter = st.sidebar.multiselect("Select Product Categories", df['product_category_name'].unique(), default=df['product_category_name'].unique())
 
-monetary = payments.groupby('customer_id').payment_value.sum().reset_index()
-monetary.columns = ['customer_id', 'Monetary']
+# Apply filters
+df_filtered = df[(df['order_purchase_timestamp'] >= pd.Timestamp(start_date)) & 
+                 (df['order_purchase_timestamp'] <= pd.Timestamp(end_date)) & 
+                 (df['product_category_name'].isin(category_filter))]
 
-df_rfm = recency.merge(frequency, on='customer_id').merge(monetary, on='customer_id')
-df_rfm['R_Score'] = pd.qcut(df_rfm['Recency'], q=4, labels=[4, 3, 2, 1])
-df_rfm['F_Score'] = pd.qcut(df_rfm['Frequency'].rank(method='first'), q=4, labels=[1, 2, 3, 4])
-df_rfm['M_Score'] = pd.qcut(df_rfm['Monetary'], q=4, labels=[1, 2, 3, 4])
-df_rfm['RFM_Score'] = df_rfm[['R_Score', 'F_Score', 'M_Score']].sum(axis=1)
+# Main Dashboard Title
+st.title("E-Commerce Sales Dashboard")
+st.markdown("""Dashboard ini menampilkan analisis penjualan dari data e-commerce, termasuk metrik utama, tren penjualan, dan kategori produk teratas.""")
 
-def rfm_segment(score):
-    if score >= 10:
-        return 'Best Customers'
-    elif score >= 8:
-        return 'Loyal Customers'
-    elif score >= 6:
-        return 'Potential Loyalist'
-    elif score >= 4:
-        return 'At Risk'
-    else:
-        return 'Lost Customers'
+# KPI Metrics
+st.subheader("Key Metrics")
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Orders", df_filtered['order_id'].nunique())
+col2.metric("Total Revenue", f"$ {df_filtered['price'].sum():,.2f}")
+col3.metric("Unique Customers", df_filtered['customer_id'].nunique())
 
-df_rfm['Segment'] = df_rfm['RFM_Score'].astype(int).apply(rfm_segment)
+# Sales Trend over time
+st.subheader("Sales Trend Over Time")
+df_filtered['Year-Month'] = df_filtered['order_purchase_timestamp'].dt.to_period('M').astype(str)
+sales_trend = df_filtered.groupby('Year-Month')['price'].sum().reset_index()
+sales_trend['Year-Month'] = sales_trend['Year-Month'].astype(str)
 
-# ---- Fitur Interaktif ----
-st.sidebar.header("🔍 Filter")
-segment_filter = st.sidebar.multiselect("Pilih Segmen Pelanggan:", options=df_rfm['Segment'].unique(), default=df_rfm['Segment'].unique())
-
-filtered_rfm = df_rfm[df_rfm['Segment'].isin(segment_filter)]
-
-st.subheader("📌 Distribusi Recency, Frequency, dan Monetary")
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-sns.histplot(filtered_rfm['Recency'], bins=30, kde=True, ax=axes[0])
-axes[0].set_title('Distribusi Recency')
-sns.histplot(filtered_rfm['Frequency'], bins=30, kde=True, ax=axes[1])
-axes[1].set_title('Distribusi Frequency')
-sns.histplot(filtered_rfm['Monetary'], bins=30, kde=True, ax=axes[2])
-axes[2].set_title('Distribusi Monetary')
+sns.set_style("darkgrid")
+fig, ax = plt.subplots(figsize=(10, 5))
+sns.lineplot(data=sales_trend, x='Year-Month', y='price', ax=ax, marker='o', color='royalblue')
+ax.set_title("Tren Penjualan per Bulan", fontsize=14, fontweight='bold')
+ax.set_xlabel("Bulan", fontsize=12)
+ax.set_ylabel("Total Penjualan ($)", fontsize=12)
+plt.xticks(rotation=45)
 st.pyplot(fig)
+st.markdown("""Grafik di atas menunjukkan perkembangan total penjualan dari waktu ke waktu. Lonjakan tertentu mungkin mengindikasikan periode promosi atau peningkatan permintaan musiman.""")
 
-st.write("📌 **Jumlah Pelanggan per Segmen:**")
-st.bar_chart(filtered_rfm['Segment'].value_counts())
+# Top Product Categories
+st.subheader("Top Selling Product Categories")
+top_categories = df_filtered.groupby('product_category_name')['price'].sum().nlargest(10).reset_index()
 
-st.write("📌 **Tabel RFM Pelanggan:**")
-st.dataframe(filtered_rfm)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(data=top_categories, x='price', y='product_category_name', ax=ax, palette='viridis')
+ax.set_title("Kategori Produk Terlaris", fontsize=14, fontweight='bold')
+ax.set_xlabel("Total Penjualan ($)", fontsize=12)
+ax.set_ylabel("Kategori Produk", fontsize=12)
+st.pyplot(fig)
+st.markdown("""Kategori di atas merupakan produk dengan penjualan tertinggi. Hal ini bisa menjadi wawasan bagi pemilik bisnis untuk memahami tren pasar.""")
+
