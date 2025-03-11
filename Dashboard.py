@@ -101,16 +101,27 @@ with tab1:
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
-    # Tambahkan label total penjualan & kategori di atas batang grafik
+    # Threshold untuk menentukan apakah teks bisa masuk ke dalam batang atau tidak
+    threshold = sales_trend['price'].max() * 0.1  # 10% dari batang tertinggi
+
     for i, row in sales_trend.iterrows():
         total_sales_label = f"${row['price']:,.0f}"
         dominant_category_label = f"{row['product_category_name']}"
-        
-        ax.text(i, row['price'] * 1.02, total_sales_label, 
-                ha='center', fontsize=10, color='black', fontweight='bold')
+    
+    # Teks total penjualan tetap di atas batang
+    ax.text(i, row['price'] * 1.02, total_sales_label, 
+            ha='center', fontsize=10, color='black', fontweight='bold')
 
-        ax.text(i, row['price'] * 1.08, dominant_category_label, 
-                ha='center', fontsize=10, color='dimgray')
+    # Jika batang cukup tinggi, teks kategori di dalam batang (warna putih)
+    if row['price'] > threshold:
+        y_position = row['price'] * 0.5  # Letakkan di tengah batang
+        text_color = "white"  # Warna teks kontras dalam batang
+    else:
+        y_position = row['price'] * 1.08  # Taruh di atas batang kalau terlalu pendek
+        text_color = "dimgray"  # Warna normal
+
+    ax.text(i, y_position, dominant_category_label, 
+            ha='center', fontsize=10, color=text_color, fontweight='bold')
 
     st.pyplot(fig)
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
