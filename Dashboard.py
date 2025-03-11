@@ -101,10 +101,16 @@ with tab1:
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
-    # Tambahkan label kategori di atas batang grafik
+    # Tambahkan label total penjualan & kategori di atas batang grafik
     for i, row in sales_trend.iterrows():
-        ax.text(i, row['price'] * 1.02, f"{row['product_category_name']}", 
-                ha='center', fontsize=10, color='black', fontweight='bold', rotation=15)
+        total_sales_label = f"${row['price']:,.0f}"
+        dominant_category_label = f"{row['product_category_name']}"
+        
+        ax.text(i, row['price'] * 1.02, total_sales_label, 
+                ha='center', fontsize=10, color='black', fontweight='bold')
+
+        ax.text(i, row['price'] * 1.08, dominant_category_label, 
+                ha='center', fontsize=10, color='blue', fontweight='bold', rotation=15)
 
     st.pyplot(fig)
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
