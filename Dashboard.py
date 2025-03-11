@@ -113,23 +113,25 @@ with tab2:
     
     st.pyplot(fig)
     st.write(f"📌The categories above represent the products with the highest sales based on the filters you selected from {start_date} to {end_date}. If you want to view other categories, please adjust the product filters in the left panel. You can identify the most profitable categories and consider further marketing strategies to boost sales.")
-    
+
     # Top Selling Products
     st.subheader("🔥 Top 5 Best-Selling Products")
     st.write("🚀Here are the top 5 best-selling products based on total sales recorded during the period you selected. Knowing these products is very useful for planning marketing strategies, managing inventory, or gaining better insights into consumer preferences.")
-    
     top_products = df_filtered.groupby(['product_id', 'product_category_name'])[['price']].sum().reset_index()
     top_products = top_products.sort_values(by='price', ascending=False).drop_duplicates(subset=['product_category_name']).head(5)
-    
+
     # Tambahkan nomor urut
     top_products.reset_index(drop=True, inplace=True)
     top_products.index += 1  # Mulai dari 1
     top_products.rename_axis("No", inplace=True)
-    
-    # Format harga ke mata uang
-    top_products['price'] = top_products['price'].apply(lambda x: locale.currency(x, grouping=True))
-    
+
+    # Format harga ke mata uang dengan f-string
+    top_products['price'] = top_products['price'].apply(lambda x: f"${x:,.2f}")
+
     # Rename column untuk tampilan yang lebih jelas
     top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
+
+st.write(top_products[['Product ID', 'Product Category', 'price']])
+
     
-    st.write(top_products[['Product ID', 'Product Category', 'price']])
+    
