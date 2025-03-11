@@ -107,23 +107,18 @@ with tab1:
     for i, row in sales_trend.iterrows():
         total_sales_label = f"${row['price']:,.0f}"
         dominant_category_label = f"{row['product_category_name']}"
-    
-    # Jika batang sangat kecil, taruh teks di atas dengan margin lebih tinggi
-    if row['price'] < threshold:
-        y_position_total = row['price'] + (sales_trend['price'].max() * 0.05)  # Tambah margin
-        y_position_category = row['price'] + (sales_trend['price'].max() * 0.1)
-    else:
-        y_position_total = row['price'] * 1.02
-        y_position_category = row['price'] * 0.5  # Taruh kategori di tengah batang
 
-    # Tampilkan total penjualan
+    # Menentukan posisi teks berdasarkan nilai batang
+    y_position_total = row['price'] * 1.02
+    y_position_category = row['price'] * 0.5  # Menaruh kategori di tengah batang
+
+    # Menampilkan total penjualan
     ax.text(i, y_position_total, total_sales_label, 
             ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Tampilkan kategori dominan
+    # Menampilkan kategori dominan
     ax.text(i, y_position_category, dominant_category_label, 
-            ha='center', fontsize=10, color='white' if row['price'] >= threshold else 'black', 
-            fontweight='bold')
+            ha='center', fontsize=10, color='black', fontweight='bold')
 
     # Tampilkan grafik
     st.pyplot(fig)
