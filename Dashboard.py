@@ -5,7 +5,11 @@ import seaborn as sns
 import locale
 
 # Set locale untuk format mata uang
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+import locale
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, '')  # Pakai locale default
 
 # Caching data untuk mempercepat loading
 @st.cache_data
