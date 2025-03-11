@@ -110,7 +110,7 @@ with tab1:
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
         ax.text(i, row['price'] * 1.08, dominant_category_label, 
-                ha='center', fontsize=10, color='blue', fontweight='bold', rotation=15)
+                ha='center', fontsize=10, color='dimgray')
 
     st.pyplot(fig)
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
