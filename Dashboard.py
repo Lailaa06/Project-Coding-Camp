@@ -101,29 +101,34 @@ with tab1:
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
-    # Threshold untuk menentukan apakah teks bisa masuk ke dalam batang atau tidak
+    
+    # Tentukan threshold untuk menyesuaikan posisi label
     threshold = sales_trend['price'].max() * 0.1  # 10% dari batang tertinggi
 
     for i, row in sales_trend.iterrows():
         total_sales_label = f"${row['price']:,.0f}"
         dominant_category_label = f"{row['product_category_name']}"
     
-    # Teks total penjualan tetap di atas batang
-    ax.text(i, row['price'] * 1.02, total_sales_label, 
+    # Jika batang sangat kecil, taruh teks di atas dengan margin lebih tinggi
+    if row['price'] < threshold:
+        y_position_total = row['price'] + (sales_trend['price'].max() * 0.05)  # Tambah margin
+        y_position_category = row['price'] + (sales_trend['price'].max() * 0.1)
+    else:
+        y_position_total = row['price'] * 1.02
+        y_position_category = row['price'] * 0.5  # Taruh kategori di tengah batang
+
+    # Tampilkan total penjualan
+    ax.text(i, y_position_total, total_sales_label, 
             ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Jika batang cukup tinggi, teks kategori di dalam batang (warna putih)
-    if row['price'] > threshold:
-        y_position = row['price'] * 0.5  # Letakkan di tengah batang
-        text_color = "white"  # Warna teks kontras dalam batang
-    else:
-        y_position = row['price'] * 1.08  # Taruh di atas batang kalau terlalu pendek
-        text_color = "dimgray"  # Warna normal
+    # Tampilkan kategori dominan
+    ax.text(i, y_position_category, dominant_category_label, 
+            ha='center', fontsize=10, color='white' if row['price'] >= threshold else 'black', 
+            fontweight='bold')
 
-    ax.text(i, y_position, dominant_category_label, 
-            ha='center', fontsize=10, color=text_color, fontweight='bold')
-
+    # Pindahkan st.pyplot(fig) keluar dari loop agar grafik tidak dibuat berulang-ulang
     st.pyplot(fig)
+
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
 
 with tab2:
