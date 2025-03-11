@@ -101,7 +101,6 @@ with tab1:
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
-    
     # Tentukan threshold untuk menyesuaikan posisi label
     threshold = sales_trend['price'].max() * 0.1  # 10% dari batang tertinggi
 
@@ -126,7 +125,7 @@ with tab1:
             ha='center', fontsize=10, color='white' if row['price'] >= threshold else 'black', 
             fontweight='bold')
 
-    # Pindahkan st.pyplot(fig) keluar dari loop agar grafik tidak dibuat berulang-ulang
+    # Tampilkan grafik
     st.pyplot(fig)
 
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
