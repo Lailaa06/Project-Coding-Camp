@@ -5,7 +5,6 @@ import seaborn as sns
 import locale
 
 # Set locale untuk format mata uang
-import locale
 try:
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 except locale.Error:
@@ -62,7 +61,17 @@ with tab1:
     st.subheader("🏅 Key Metrics")
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
-    col2.metric("💵 Total Revenue", locale.currency(df_filtered['price'].sum(), grouping=True))
+    
+    # Ensure 'price' is numeric and handle NaN values by filling them with 0
+    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
+
+    # Handle currency formatting with error handling
+    try:
+        total_revenue = locale.currency(df_filtered['price'].sum(), grouping=True)
+    except ValueError:
+        total_revenue = f"${df_filtered['price'].sum():,.2f}"  # fallback to default formatting
+    col2.metric("💵 Total Revenue", total_revenue)
+    
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
     
     # Sales Trend over time (Per Tahun)
@@ -108,6 +117,7 @@ with tab2:
     # Top Selling Products
     st.subheader("🔥 Top 5 Best-Selling Products")
     st.write("🚀Here are the top 5 best-selling products based on total sales recorded during the period you selected. Knowing these products is very useful for planning marketing strategies, managing inventory, or gaining better insights into consumer preferences.")
+    
     top_products = df_filtered.groupby(['product_id', 'product_category_name'])[['price']].sum().reset_index()
     top_products = top_products.sort_values(by='price', ascending=False).drop_duplicates(subset=['product_category_name']).head(5)
     
