@@ -131,7 +131,7 @@ with tab2:
     # Rename column untuk tampilan yang lebih jelas
     top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
 
-st.write(top_products[['Product ID', 'Product Category', 'price']])
+    st.write(top_products[['Product ID', 'Product Category', 'price']])
 
     
     
