@@ -61,74 +61,53 @@ with tab1:
     st.subheader("🏅 Key Metrics")
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
-
-    # Ensure 'price' is numeric and handle NaN values
+    
+    # Ensure 'price' is numeric and handle NaN values by filling them with 0
     df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
 
-    # Total Revenue
+    # Handle currency formatting with error handling
     try:
         total_revenue = locale.currency(df_filtered['price'].sum(), grouping=True)
     except ValueError:
-        total_revenue = f"${df_filtered['price'].sum():,.2f}"
+        total_revenue = f"${df_filtered['price'].sum():,.2f}"  # fallback to default formatting
     col2.metric("💵 Total Revenue", total_revenue)
     
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
-
-    # Sales Trend Over Time (Yearly) with Dominant Categories
-    st.subheader("📈 Sales Trend Over Time (Yearly)")
-
+    
+    # Sales Trend over time (Per Tahun dan Kategori Produk)
+    st.subheader("📈 Sales Trend Over Time (Yearly & By Category)")
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
-
-    # Grup berdasarkan tahun dan kategori produk
-    sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
-
-    # Ambil kategori dengan penjualan tertinggi tiap tahun
-    dominant_category_per_year = sales_by_year_category.loc[sales_by_year_category.groupby('Year')['price'].idxmax()]
-
-    # Total penjualan per tahun
-    sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
-
-    # Gabungkan dengan kategori dominan
-    sales_trend = sales_trend.merge(dominant_category_per_year[['Year', 'product_category_name']], on='Year', how='left')
-
-    # Buat grafik
+    sales_trend = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
+    
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(12, 6))
-    colors = sns.color_palette("husl", len(sales_trend))
-
-    sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
-    ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
+    colors = sns.color_palette("husl", len(sales_trend['product_category_name'].unique()))
+    
+    sns.barplot(
+        data=sales_trend, 
+        x='Year', 
+        y='price', 
+        hue='product_category_name', 
+        ax=ax, 
+        palette=colors
+    )
+    
+    ax.set_title("Tren Penjualan per Tahun dan Kategori Produk", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
-
-    # Tentukan threshold untuk menyesuaikan posisi label
-    threshold = sales_trend['price'].max() * 0.1  # 10% dari batang tertinggi
-
-    for i, row in sales_trend.iterrows():
-        total_sales_label = f"${row['price']:,.0f}"
-        dominant_category_label = f"{row['product_category_name']}"
-
-    # Menentukan posisi teks berdasarkan nilai batang
-    y_position_total = row['price'] * 1.02
-    y_position_category = row['price'] * 0.5  # Menaruh kategori di tengah batang
-
-    # Menampilkan total penjualan
-    ax.text(i, y_position_total, total_sales_label, 
-            ha='center', fontsize=10, color='black', fontweight='bold')
-
-    # Menampilkan kategori dominan
-    ax.text(i, y_position_category, dominant_category_label, 
-            ha='center', fontsize=10, color='black', fontweight='bold')
-
-    # Tampilkan grafik
+    
+    for container in ax.containers:
+        ax.bar_label(container, fmt="%.0f", label_type="edge", fontsize=10, color='black', fontweight='bold')
+    
+    ax.legend(title="Product Category", bbox_to_anchor=(1.05, 1), loc='upper left')
+    
     st.pyplot(fig)
-
-    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
+    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date} categorized by product types. You can analyze how different categories performed over time and identify key trends.")
 
 with tab2:
     # Top Product Categories
     st.subheader("🏆 Top Selling Product Categories")
-
+    
     top_categories = df_filtered.groupby('product_category_name')['price'].sum().nlargest(10).reset_index()
     
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -143,26 +122,18 @@ with tab2:
         ax.text(width + max(top_categories['price']) * 0.05, p.get_y() + p.get_height()/1, f'{width:,.0f}', ha='left', fontsize=10, color='black', fontweight='bold')
     
     st.pyplot(fig)
-    st.write(f"📌The categories above represent the products with the highest sales based on the filters you selected from {start_date} to {end_date}. If you want to view other categories, please adjust the product filters in the left panel. You can identify the most profitable categories and consider further marketing strategies to boost sales.")
-
+    
     # Top Selling Products
     st.subheader("🔥 Top 5 Best-Selling Products")
-    st.write("🚀Here are the top 5 best-selling products based on total sales recorded during the period you selected. Knowing these products is very useful for planning marketing strategies, managing inventory, or gaining better insights into consumer preferences.")
     top_products = df_filtered.groupby(['product_id', 'product_category_name'])[['price']].sum().reset_index()
     top_products = top_products.sort_values(by='price', ascending=False).drop_duplicates(subset=['product_category_name']).head(5)
-
-    # Tambahkan nomor urut
+    
     top_products.reset_index(drop=True, inplace=True)
-    top_products.index += 1  # Mulai dari 1
+    top_products.index += 1
     top_products.rename_axis("No", inplace=True)
-
-    # Format harga ke mata uang dengan f-string
+    
     top_products['price'] = top_products['price'].apply(lambda x: f"${x:,.2f}")
-
-    # Rename column untuk tampilan yang lebih jelas
+    
     top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
-
+    
     st.write(top_products[['Product ID', 'Product Category', 'price']])
-
-    
-    
