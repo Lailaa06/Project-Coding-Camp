@@ -58,11 +58,8 @@ with tab1:
     # Ensure 'price' is numeric and handle NaN values
     df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
 
-    # Total Revenue
-    try:
-        total_revenue = locale.currency(df_filtered['price'].sum(), grouping=True)
-    except ValueError:
-        total_revenue = f"${df_filtered['price'].sum():,.2f}"
+    # Total Revenue (menggunakan babel)
+    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
     col2.metric("💵 Total Revenue", total_revenue)
     
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
