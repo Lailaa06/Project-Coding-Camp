@@ -98,10 +98,12 @@ with tab1:
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Buat legenda kategori di sebelah kanan grafik
-    legend_labels = sales_trend[sales_trend['product_category_name'].isin(category_filter)]['product_category_name'].dropna().unique()
-    legend_colors = sns.color_palette("husl", len(legend_labels))  # Pastikan jumlah warna sama dengan jumlah kategori
+    # Ambil kategori yang benar-benar muncul dalam grafik batang (bukan hanya kategori dominan)
+    categories_in_chart = sales_by_year_category[sales_by_year_category['product_category_name'].isin(df_filtered['product_category_name'].unique())]
+    categories_in_chart = categories_in_chart['product_category_name'].unique()
 
+    # Buat warna hanya untuk kategori yang muncul di grafik
+    legend_colors = sns.color_palette("husl", len(categories_in_chart))
 
     # Buat patch untuk legenda
     patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
