@@ -36,11 +36,15 @@ selected_years = st.sidebar.multiselect("📆 Select Years", df['order_purchase_
 # Improved Product Category Filter with Searchable Multi-Select & Scrollable Panel
 with st.sidebar.expander("📦 Select Product Categories"):
     all_categories = sorted(df['product_category_name'].dropna().unique())
-    select_all = st.checkbox("Select All", value=True)
+    
+    # Default value untuk "Select All" diubah menjadi False
+    select_all = st.checkbox("Select All", value=False)  # Tidak otomatis terpilih
     
     if select_all:
+        # Jika "Select All" dicentang, pilih semua kategori
         category_filter = st.multiselect("📋 Categories", options=all_categories, default=all_categories)
     else:
+        # Jika "Select All" tidak dicentang, tampilkan multiselect tanpa default value
         category_filter = st.multiselect("📋 Categories", options=all_categories, default=[])
 
 # Apply filters
