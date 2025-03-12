@@ -59,7 +59,7 @@ with tab1:
     # Pie Chart
     fig, ax = plt.subplots(figsize=(8, 6))
     colors = sns.color_palette("husl", len(sales_trend))
-    ax.pie(sales_trend['Product Category'], labels=sales_trend['Year'], autopct='%1.1f%%', colors=colors, startangle=140)
+    ax.pie(sales_trend['product_category_name'], labels=sales_trend['Year'], autopct='%1.1f%%', colors=colors, startangle=140)
     ax.set_title("Tren Penjualan per Tahun", fontsize=12, fontweight='bold')
 
 
