@@ -110,7 +110,7 @@ with tab1:
         for i in range(len(categories_in_chart))]
 
     # Tambahkan legenda di sebelah kanan grafik
-    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend(patches, categories_in_chart, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
