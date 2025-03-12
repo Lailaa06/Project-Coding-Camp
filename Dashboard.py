@@ -64,7 +64,7 @@ with tab1:
     
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
 
-    # Sales Trend Over Time (Yearly) with Dominant Categories
+    # Sales Trend Over Time (Yearly) with All Categories
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
@@ -72,48 +72,37 @@ with tab1:
     # Grup berdasarkan tahun dan kategori produk (hanya kategori yang difilter)
     sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
 
-    # Ambil kategori dengan penjualan tertinggi tiap tahun (hanya kategori yang difilter)
-    dominant_category_per_year = sales_by_year_category.loc[sales_by_year_category.groupby('Year')['price'].idxmax()]
-
-    # Total penjualan per tahun
-    sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
-
-    # Gabungkan dengan kategori dominan (hanya kategori yang difilter)
-    sales_trend = sales_trend.merge(dominant_category_per_year[['Year', 'product_category_name']], on='Year', how='left')
+    # Ambil semua kategori yang ada di grafik (bukan hanya kategori dominan)
+    all_categories_in_chart = sales_by_year_category['product_category_name'].unique()
 
     # Buat grafik
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(12, 6))
-    colors = sns.color_palette("husl", len(sales_trend))
+    colors = sns.color_palette("husl", len(all_categories_in_chart))
 
-    # Plot bar chart
-    sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
-    ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
+    # Plot bar chart untuk setiap kategori
+    for i, category in enumerate(all_categories_in_chart):
+        category_data = sales_by_year_category[sales_by_year_category['product_category_name'] == category]
+        sns.barplot(data=category_data, x='Year', y='price', ax=ax, color=colors[i], label=category)
+
+    ax.set_title("Tren Penjualan per Tahun dengan Semua Kategori", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
     # Tambahkan label total penjualan di atas batang grafik
-    for i, row in sales_trend.iterrows():
+    for i, row in sales_by_year_category.iterrows():
         total_sales_label = f"${row['price']:,.0f}"
-        ax.text(i, row['price'] * 1.02, total_sales_label, 
+        ax.text(row['Year'], row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Buat legenda kategori di sebelah kanan grafik
-    legend_labels = sales_trend['product_category_name'].dropna().unique()
-    legend_colors = colors[:len(legend_labels)]  # Ambil warna sesuai jumlah kategori
-
-    # Buat patch untuk legenda
-    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-               for i in range(len(legend_labels))]
-
-    # Tambahkan legenda di sebelah kanan grafik
-    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+    # Buat legenda untuk semua kategori di sebelah kanan grafik
+    ax.legend(title="Kategori Produk", loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
 
     st.pyplot(fig)
-    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
+    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting all product categories. This insight helps in identifying trends in product demand.")
 
 with tab2:
     # Top Product Categories
