@@ -108,6 +108,7 @@ with tab1:
 
     # Tambahkan legenda
     ax.legend(patches, categories_in_chart, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+    print("Kategori yang muncul di grafik:", categories_in_chart)
 
 
     # Adjust layout agar legenda tidak terpotong
