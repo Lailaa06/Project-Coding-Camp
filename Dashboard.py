@@ -86,24 +86,31 @@ with tab1:
     fig, ax = plt.subplots(figsize=(12, 6))
     colors = sns.color_palette("husl", len(sales_trend))
 
+    # Plot bar chart
     sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
     ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
-    # Tambahkan label total penjualan & kategori di samping batang grafik
+    # Tambahkan label total penjualan di atas batang grafik
     for i, row in sales_trend.iterrows():
         total_sales_label = f"${row['price']:,.0f}"
-        dominant_category_label = f"{row['product_category_name']}"
-        
-        # Label total penjualan di atas batang
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-        # Label kategori di samping batang (hanya jika kategori ada dalam filter)
-        if row['product_category_name'] in category_filter:
-            ax.text(i + 0.3, row['price'] * 0.5, dominant_category_label, 
-                    ha='left', fontsize=10, color='blue', fontweight='bold', rotation=0)
+    # Buat legenda kategori di sebelah kanan grafik
+    legend_labels = sales_trend['product_category_name'].dropna().unique()
+    legend_colors = colors[:len(legend_labels)]  # Ambil warna sesuai jumlah kategori
+
+    # Buat patch untuk legenda
+    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
+               for i in range(len(legend_labels))]
+
+    # Tambahkan legenda di sebelah kanan grafik
+    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+
+    # Adjust layout agar legenda tidak terpotong
+    plt.tight_layout()
 
     st.pyplot(fig)
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
