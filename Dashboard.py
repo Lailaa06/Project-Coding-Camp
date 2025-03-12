@@ -54,28 +54,62 @@ with tab1:
     st.subheader("🏅 Key Metrics")
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
-    col2.metric("💵 Total Revenue", format_currency(df_filtered['price'].sum(), 'USD', locale='en_US'))  # Ganti locale dengan babel
+
+    # Ensure 'price' is numeric and handle NaN values
+    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
+
+    # Total Revenue
+    try:
+        total_revenue = locale.currency(df_filtered['price'].sum(), grouping=True)
+    except ValueError:
+        total_revenue = f"${df_filtered['price'].sum():,.2f}"
+    col2.metric("💵 Total Revenue", total_revenue)
+    
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
-    
-    # Sales Trend over time (Per Tahun)
+
+    # Sales Trend Over Time (Yearly) with Dominant Categories
     st.subheader("📈 Sales Trend Over Time (Yearly)")
+
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
+
+    # Grup berdasarkan tahun dan kategori produk (hanya kategori yang difilter)
+    sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
+
+    # Ambil kategori dengan penjualan tertinggi tiap tahun (hanya kategori yang difilter)
+    dominant_category_per_year = sales_by_year_category.loc[sales_by_year_category.groupby('Year')['price'].idxmax()]
+
+    # Total penjualan per tahun
     sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
-    
+
+    # Gabungkan dengan kategori dominan (hanya kategori yang difilter)
+    sales_trend = sales_trend.merge(dominant_category_per_year[['Year', 'product_category_name']], on='Year', how='left')
+
+    # Buat grafik
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(12, 6))
     colors = sns.color_palette("husl", len(sales_trend))
+
     sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
-    ax.set_title("Tren Penjualan per Tahun", fontsize=12, fontweight='bold')
+    ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
-    
+
+    # Tambahkan label total penjualan & kategori di samping batang grafik
     for i, row in sales_trend.iterrows():
-        ax.text(i, row['price'] * 1.02, f"{row['price']:,.0f}", 
+        total_sales_label = f"${row['price']:,.0f}"
+        dominant_category_label = f"{row['product_category_name']}"
+        
+        # Label total penjualan di atas batang
+        ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
-    
+
+        # Label kategori di samping batang (hanya jika kategori ada dalam filter)
+        if row['product_category_name'] in category_filter:
+            ax.text(i + 0.3, row['price'] * 0.5, dominant_category_label, 
+                    ha='left', fontsize=10, color='blue', fontweight='bold', rotation=0)
+
     st.pyplot(fig)
-    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}.")
+    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
 
 with tab2:
     # Top Product Categories
