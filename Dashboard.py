@@ -107,7 +107,7 @@ with tab1:
 
     # Buat patch untuk legenda
     patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-        for i in range(len(legend_labels))]
+        for i in range(len(categories_in_chart))]
 
     # Tambahkan legenda di sebelah kanan grafik
     ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
