@@ -100,7 +100,7 @@ with tab1:
 
     
     # Ambil kategori yang benar-benar ada di grafik batang
-    categories_in_chart = sales_trend[sales_trend['sales'] > 0]['product_category_name'].unique()
+    categories_in_chart = sales_trend[sales_trend['sales_trend'] > 0]['product_category_name'].unique()
     # Ambil warna yang sesuai dengan kategori yang muncul di grafik
     color_mapping = dict(zip(sales_trend['product_category_name'].unique(), colors))  # Mapping kategori ke warna
     legend_colors = [color_mapping[cat] for cat in categories_in_chart]  # Warna sesuai kategori di chart
