@@ -1,101 +1,53 @@
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from babel.numbers import format_currency  # Ganti locale dengan babel
+    import streamlit as st
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from babel.numbers import format_currency
 
-# Caching data untuk mempercepat loading
-@st.cache_data
-def load_data(file_path):
-    return pd.read_csv(file_path)
+    # Caching data untuk mempercepat loading
+    @st.cache_data
+    def load_data(file_path):
+        return pd.read_csv(file_path)
 
-# Load cleaned datasets
-orders = load_data("orders_cleaned.csv")
-order_items = load_data("item_cleaned.csv")
-products = load_data("produk_cleaned.csv")
+    # Load cleaned datasets
+    orders = load_data("orders_cleaned.csv")
+    order_items = load_data("item_cleaned.csv")
+    products = load_data("produk_cleaned.csv")
 
-# Merge datasets
-df = orders.merge(order_items, on="order_id", how="left")
-df = df.merge(products, on="product_id", how="left")
+    # Merge datasets
+    df = orders.merge(order_items, on="order_id", how="left")
+    df = df.merge(products, on="product_id", how="left")
 
-# Convert date column to datetime
-df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
+    # Convert date column to datetime
+    df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
 
-# Sidebar filters
-st.sidebar.header("🔧 Filters")
-start_date = st.sidebar.date_input("📅 Start Date", df['order_purchase_timestamp'].min())
-end_date = st.sidebar.date_input("📅 End Date", df['order_purchase_timestamp'].max())
-selected_years = st.sidebar.multiselect("📆 Select Years", df['order_purchase_timestamp'].dt.year.unique(), default=df['order_purchase_timestamp'].dt.year.unique())
+    # Sidebar filters
+    st.sidebar.header("🔧 Filters")
+    start_date = st.sidebar.date_input("📅 Start Date", df['order_purchase_timestamp'].min())
+    end_date = st.sidebar.date_input("📅 End Date", df['order_purchase_timestamp'].max())
+    selected_years = st.sidebar.multiselect("📆 Select Years", df['order_purchase_timestamp'].dt.year.unique(), default=df['order_purchase_timestamp'].dt.year.unique())
 
-# Improved Product Category Filter with Searchable Multi-Select & Scrollable Panel
-with st.sidebar.expander("📦 Select Product Categories"):
-    all_categories = sorted(df['product_category_name'].dropna().unique())
-    select_all = st.checkbox("Select All", value=False)
-    if select_all:
-        category_filter = st.multiselect("📋 Categories", options=all_categories, default=all_categories)
-    else:
-        category_filter = st.multiselect("📋 Categories", options=all_categories, default=[])
-
-# Apply filters
-df_filtered = df[(df['order_purchase_timestamp'] >= pd.Timestamp(start_date)) & 
+    # Apply filters
+    df_filtered = df[(df['order_purchase_timestamp'] >= pd.Timestamp(start_date)) & 
                  (df['order_purchase_timestamp'] <= pd.Timestamp(end_date)) & 
-                 (df['order_purchase_timestamp'].dt.year.isin(selected_years)) & 
-                 (df['product_category_name'].isin(category_filter))].copy()
+                 (df['order_purchase_timestamp'].dt.year.isin(selected_years))].copy()
 
-# Main Dashboard Title
-st.title("📊 Brazilian E-Commerce Public Dashboard")
-st.write("🚀 This dashboard helps analyze sales trends and product performance based on the selected filters.")
+    # Main Dashboard Title
+    st.title("📊 Brazilian E-Commerce Public Dashboard")
 
-# Membagi halaman menjadi dua tabs
-tab1, tab2 = st.tabs(["📈 Sales Analysis", "🏆 Best Products"])
-
-with tab1:
-    # KPI Metrics
-    st.subheader("🏅 Key Metrics")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
-
-    # Ensure 'price' is numeric and handle NaN values
-    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
-
-    # Total Revenue (menggunakan babel)
-    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
-    col2.metric("💵 Total Revenue", total_revenue)
-    
-    col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
-
-    # Sales Trend Over Time (Yearly) with Dominant Categories
+    # Sales Trend Over Time (Yearly)
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
-
-    # Grup berdasarkan tahun dan kategori produk (hanya kategori yang difilter)
-    sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
-
-    # Ambil kategori dengan penjualan tertinggi tiap tahun (hanya kategori yang difilter)
-    dominant_category_per_year = sales_by_year_category.loc[sales_by_year_category.groupby('Year')['price'].idxmax()]
-
-    # Total penjualan per tahun
     sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
 
-    # Gabungkan dengan kategori dominan (hanya kategori yang difilter)
-    sales_trend = sales_trend.merge(dominant_category_per_year[['Year', 'product_category_name']], on='Year', how='left')
-
-    # Buat grafik
-    sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 6))
-    colors = sns.color_palette("husl", len(sales_trend))
-
-
-    # Plot pie chart
+    # Pie Chart
     fig, ax = plt.subplots(figsize=(8, 6))
+    colors = sns.color_palette("husl", len(sales_trend))
     ax.pie(sales_trend['price'], labels=sales_trend['Year'], autopct='%1.1f%%', colors=colors, startangle=140)
+    ax.set_title("Tren Penjualan per Tahun", fontsize=12, fontweight='bold')
 
-    # Tambahkan judul
-    ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
-
-    # Tampilkan plot
-    plt.show()
+    st.pyplot(fig)
 
 
     # Tambahkan label total penjualan di atas batang grafik
