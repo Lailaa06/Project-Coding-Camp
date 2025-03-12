@@ -98,17 +98,21 @@ with tab1:
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Ambil kategori yang muncul di grafik batang
-    categories_in_chart = sales_trend['product_category_name'].dropna().unique()
-    legend_colors = colors[:len(categories_in_chart)]  # Warna sesuai jumlah kategori di grafik
+    
+    # Ambil kategori yang benar-benar ada di grafik batang
+    categories_in_chart = sales_trend[sales_trend['sales'] > 0]['product_category_name'].unique()
+    # Ambil warna yang sesuai dengan kategori yang muncul di grafik
+    color_mapping = dict(zip(sales_trend['product_category_name'].unique(), colors))  # Mapping kategori ke warna
+    legend_colors = [color_mapping[cat] for cat in categories_in_chart]  # Warna sesuai kategori di chart
 
-    # Buat patch untuk legenda hanya untuk kategori yang muncul di grafik
+
+    # Buat patch untuk legend hanya dengan kategori yang muncul di grafik
     patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
            for i in range(len(categories_in_chart))]
 
-    # Tambahkan legenda
+    # Tambahkan legend
     ax.legend(patches, categories_in_chart, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
-    print("Kategori yang muncul di grafik:", categories_in_chart)
+
 
 
     # Adjust layout agar legenda tidak terpotong
