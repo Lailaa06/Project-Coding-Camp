@@ -98,19 +98,17 @@ with tab1:
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Ambil kategori yang benar-benar muncul dalam grafik batang (bukan hanya kategori dominan)
-    categories_in_chart = sales_by_year_category[sales_by_year_category['product_category_name'].isin(df_filtered['product_category_name'].unique())]
-    categories_in_chart = categories_in_chart['product_category_name'].unique()
+    # Ambil kategori yang muncul di grafik batang
+    categories_in_chart = sales_trend['product_category_name'].dropna().unique()
+    legend_colors = colors[:len(categories_in_chart)]  # Warna sesuai jumlah kategori di grafik
 
-    # Buat warna hanya untuk kategori yang muncul di grafik
-    legend_colors = sns.color_palette("husl", len(categories_in_chart))
-
-    # Buat patch untuk legenda
+    # Buat patch untuk legenda hanya untuk kategori yang muncul di grafik
     patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-        for i in range(len(categories_in_chart))]
+           for i in range(len(categories_in_chart))]
 
-    # Tambahkan legenda di sebelah kanan grafik
+    # Tambahkan legenda
     ax.legend(patches, categories_in_chart, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+
 
     # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
