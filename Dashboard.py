@@ -86,11 +86,17 @@ with tab1:
     fig, ax = plt.subplots(figsize=(12, 6))
     colors = sns.color_palette("husl", len(sales_trend))
 
-    # Plot bar chart
-    sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
+
+    # Plot pie chart
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.pie(sales_trend['price'], labels=sales_trend['Year'], autopct='%1.1f%%', colors=colors, startangle=140)
+
+    # Tambahkan judul
     ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
-    ax.set_xlabel("Tahun", fontsize=12)
-    ax.set_ylabel("Total Penjualan ($)", fontsize=12)
+
+    # Tampilkan plot
+    plt.show()
+
 
     # Tambahkan label total penjualan di atas batang grafik
     for i, row in sales_trend.iterrows():
