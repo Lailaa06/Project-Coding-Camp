@@ -54,12 +54,12 @@ with tab1:
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
-    sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
+    sales_trend = df_filtered.groupby('Year')['Product Category'].sum().reset_index()
 
     # Pie Chart
     fig, ax = plt.subplots(figsize=(8, 6))
     colors = sns.color_palette("husl", len(sales_trend))
-    ax.pie(product_category_name['Product Category'], labels=sales_trend['Year'], autopct='%1.1f%%', colors=colors, startangle=140)
+    ax.pie(sales_trend['Product Category'], labels=sales_trend['Year'], autopct='%1.1f%%', colors=colors, startangle=140)
     ax.set_title("Tren Penjualan per Tahun", fontsize=12, fontweight='bold')
 
 
