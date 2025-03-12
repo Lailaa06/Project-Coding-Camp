@@ -98,18 +98,18 @@ with tab1:
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-# Buat daftar kategori yang benar-benar muncul di grafik
-legend_labels = sales_trend['product_category_name'].dropna().unique()
+    # Buat daftar kategori yang benar-benar muncul di grafik
+    legend_labels = sales_trend['product_category_name'].dropna().unique()
 
-# Pastikan jumlah warna sesuai dengan jumlah kategori dalam grafik
-legend_colors = colors[:len(legend_labels)]
+    # Pastikan jumlah warna sesuai dengan jumlah kategori dalam grafik
+    legend_colors = colors[:len(legend_labels)]
 
-# Buat patch untuk legenda
-patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
+    # Buat patch untuk legenda
+    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
            for i in range(len(legend_labels))]
 
-# Tambahkan legenda di sebelah kanan grafik
-ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+    # Tambahkan legenda di sebelah kanan grafik
+    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
