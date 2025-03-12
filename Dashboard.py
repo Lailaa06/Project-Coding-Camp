@@ -98,20 +98,31 @@ with tab1:
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Buat daftar kategori yang benar-benar muncul di grafik
-    legend_labels = sales_trend['product_category_name'].dropna().unique()
+    # Buat daftar kategori produk yang sesuai filter dan benar-benar muncul di data
+    filtered_categories = df_filtered['product_category_name'].dropna().unique()
+    legend_labels = [cat for cat in filtered_categories if cat in sales_by_year_category['product_category_name'].values]
+
 
     # Pastikan jumlah warna sesuai dengan jumlah kategori dalam grafik
-    legend_colors = colors[:len(legend_labels)]
+    colors = sns.color_palette("husl", len(legend_labels))
 
-    # Buat patch untuk legenda
-    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-           for i in range(len(legend_labels))]
+    # Mapping warna berdasarkan kategori produk
+    color_map = {category: colors[i] for i, category in enumerate(legend_labels)}
 
-    # Tambahkan legenda di sebelah kanan grafik
-    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+    # Plot bar chart dengan warna sesuai kategori produk
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-    # Adjust layout agar legenda tidak terpotong
+    for category in legend_labels:
+        category_data = sales_by_year_category[sales_by_year_category['product_category_name'] == category]
+        ax.bar(category_data['Year'], category_data['price'], label=category, color=color_map[category])
+
+    ax.set_title("Tren Penjualan per Tahun", fontsize=12, fontweight='bold')
+    ax.set_xlabel("Tahun", fontsize=12)
+    ax.set_ylabel("Total Penjualan ($)", fontsize=12)
+
+    # Tambahkan legenda dengan kategori yang sesuai
+    ax.legend(title="Kategori Produk", loc='center left', bbox_to_anchor=(1, 0.5))
+
     plt.tight_layout()
 
     st.pyplot(fig)
