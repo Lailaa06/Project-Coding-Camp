@@ -32,7 +32,7 @@ with st.sidebar.expander("📦 Select Product Categories"):
     all_categories = sorted(df['product_category_name'].dropna().unique())
     select_all = st.checkbox("Select All", value=False)
     if select_all:
-        category_filter = st.multiselect("📋 Categories", options=all_categories, default=all_categories)
+        category_filter = all_categories
     else:
         category_filter = st.multiselect("📋 Categories", options=all_categories, default=[])
 
@@ -69,50 +69,30 @@ with tab1:
 
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
 
-    # Grup berdasarkan tahun dan kategori produk (hanya kategori yang difilter)
+    # Grup berdasarkan tahun dan kategori produk
     sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
-
-    # Ambil kategori dengan penjualan tertinggi tiap tahun (hanya kategori yang difilter)
-    dominant_category_per_year = sales_by_year_category.loc[sales_by_year_category.groupby('Year')['price'].idxmax()]
 
     # Total penjualan per tahun
     sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
 
-    # Gabungkan dengan kategori dominan (hanya kategori yang difilter)
-    sales_trend = sales_trend.merge(dominant_category_per_year[['Year', 'product_category_name']], on='Year', how='left')
-
     # Buat grafik
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(12, 6))
-    colors = sns.color_palette("husl", len(sales_trend))
+    colors = sns.color_palette("husl", len(category_filter))
 
-    # Plot bar chart
-    sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
+    # Plot bar chart dengan label kategori produk
+    bars = ax.bar(sales_by_year_category['Year'].astype(str), sales_by_year_category['price'], color=colors[:len(sales_by_year_category)])
     ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
-    # Tambahkan label total penjualan di atas batang grafik
-    for i, row in sales_trend.iterrows():
-        total_sales_label = f"${row['price']:,.0f}"
-        ax.text(i, row['price'] * 1.02, total_sales_label, 
-                ha='center', fontsize=10, color='black', fontweight='bold')
+    # Tambahkan label kategori produk di setiap batang
+    for bar, category in zip(bars, sales_by_year_category['product_category_name']):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height(), category, ha='center', va='bottom', fontsize=10, rotation=45)
 
-    # Buat legenda kategori di sebelah kanan grafik
-    legend_labels = sales_trend['product_category_name'].dropna().unique()
-    legend_colors = colors[:len(legend_labels)]  # Ambil warna sesuai jumlah kategori
-
-    # Buat patch untuk legenda
-    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-               for i in range(len(legend_labels))]
-
-    # Tambahkan legenda di sebelah kanan grafik
-    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
-
-    # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
-
     st.pyplot(fig)
+
     st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
 
 with tab2:
@@ -133,18 +113,3 @@ with tab2:
     
     st.pyplot(fig)
     st.write(f"📌The categories above represent the products with the highest sales based on the filters you selected from {start_date} to {end_date}.")
-    
-    # Top Selling Products
-    st.subheader("🔥 Top 5 Best-Selling Products")
-    st.write("🚀Here are the top 5 best-selling products based on total sales recorded during the period you selected.")
-    top_products = df_filtered.groupby(['product_id', 'product_category_name'])[['price']].sum().reset_index()
-    top_products = top_products.sort_values(by='price', ascending=False).drop_duplicates(subset=['product_category_name']).head(5)
-    
-    top_products.reset_index(drop=True, inplace=True)
-    top_products.index += 1
-    top_products.rename_axis("No", inplace=True)
-    
-    top_products['price'] = top_products['price'].apply(lambda x: format_currency(x, 'USD', locale='en_US'))  # Ganti locale dengan babel
-    top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
-    
-    st.write(top_products[['Product ID', 'Product Category','price']])
