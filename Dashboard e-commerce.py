@@ -72,7 +72,7 @@ with tab1:
     # Grup berdasarkan tahun dan kategori produk (hanya kategori yang difilter)
     sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
 
-    # Ambil semua kategori yang muncul dalam grafik (bukan hanya kategori dominan)
+    # Ambil kategori yang benar-benar muncul dalam grafik
     categories_in_chart = sales_by_year_category['product_category_name'].unique()
 
     # Total penjualan per tahun
@@ -98,16 +98,20 @@ with tab1:
         ax.text(i, row['price'] * 1.02, total_sales_label, 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Buat legenda kategori di sebelah kanan grafik
-    legend_labels = categories_in_chart
-    legend_colors = colors[:len(legend_labels)]  # Ambil warna sesuai jumlah kategori
+    # Buat legenda hanya untuk kategori yang muncul dalam grafik
+    if len(categories_in_chart) > 0:
+        legend_labels = categories_in_chart
+        legend_colors = colors[:len(legend_labels)]  # Ambil warna sesuai jumlah kategori
 
-    # Buat patch untuk legenda
-    patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-               for i in range(len(legend_labels))]
+        # Buat patch untuk legenda
+        patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
+                   for i in range(len(legend_labels))]
 
-    # Tambahkan legenda di sebelah kanan grafik
-    ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+        # Tambahkan legenda di sebelah kanan grafik
+        ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
+    else:
+        # Jika tidak ada kategori yang muncul, hapus legenda
+        ax.legend().remove()
 
     # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
