@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import locale
 
-# Set locale untuk format mata uang
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 # Caching data untuk mempercepat loading
 @st.cache_data
