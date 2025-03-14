@@ -21,11 +21,34 @@ df = df.merge(products, on="product_id", how="left")
 # Convert date column to datetime
 df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
 
+# Tentukan batas tanggal minimum dan maksimum
+min_date = pd.Timestamp('2016-01-01')
+max_date = pd.Timestamp('2018-12-31')
+
 # Sidebar filters
 st.sidebar.header("🔧 Filters")
-start_date = st.sidebar.date_input("📅 Start Date", df['order_purchase_timestamp'].min())
-end_date = st.sidebar.date_input("📅 End Date", df['order_purchase_timestamp'].max())
-selected_years = st.sidebar.multiselect("📆 Select Years", df['order_purchase_timestamp'].dt.year.unique(), default=df['order_purchase_timestamp'].dt.year.unique())
+start_date = st.sidebar.date_input(
+    "📅 Start Date", 
+    min_date,  # Default: 1 Januari 2016
+    min_value=min_date,  # Batas bawah: 1 Januari 2016
+    max_value=max_date   # Batas atas: 31 Desember 2018
+)
+end_date = st.sidebar.date_input(
+    "📅 End Date", 
+    max_date,  # Default: 31 Desember 2018
+    min_value=min_date,  # Batas bawah: 1 Januari 2016
+    max_value=max_date   # Batas atas: 31 Desember 2018
+)
+
+# Ambil tahun yang valid (2016, 2017, 2018)
+valid_years = [2016, 2017, 2018]
+
+# Filter tahun yang dipilih
+selected_years = st.sidebar.multiselect(
+    "📆 Select Years", 
+    options=valid_years,  # Hanya tampilkan tahun 2016, 2017, 2018
+    default=valid_years   # Default: semua tahun (2016, 2017, 2018)
+)
 
 # Improved Product Category Filter with Searchable Multi-Select & Scrollable Panel
 with st.sidebar.expander("📦 Select Product Categories"):
@@ -48,7 +71,22 @@ st.write("🚀 This dashboard helps analyze sales trends and product performance
 
 # Membagi halaman menjadi dua tabs
 tab1, tab2 = st.tabs(["📈 Sales Analysis", "🏆 Best Products"])
+
 with tab1:
+    # KPI Metrics
+    st.subheader("🏅 Key Metrics")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
+
+    # Ensure 'price' is numeric and handle NaN values
+    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
+
+    # Total Revenue (menggunakan babel)
+    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
+    col2.metric("💵 Total Revenue", total_revenue)
+    
+    col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
+
     # Sales Trend Over Time (Yearly) with Top Categories
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
