@@ -75,7 +75,11 @@ with tab1:
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
     # Hitung threshold (1% dari total penjualan maksimum)
-    threshold = max(sales_by_year_top_categories['price']) * 0.01
+    if not sales_by_year_top_categories.empty and 'price' in sales_by_year_top_categories.columns:
+        threshold = max(sales_by_year_top_categories['price']) * 0.01
+    else:
+        st.warning("Tidak ada data penjualan yang memenuhi kriteria filter atau kolom 'price' tidak ditemukan.")
+        threshold = 0  # Atur threshold ke 0 jika data tidak valid
 
     # Tambahkan label total penjualan di atas batang grafik
     for p in ax.patches:
