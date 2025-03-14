@@ -24,6 +24,7 @@ PROYEK ANALISIS DATA
 │    ├─── Dashboard_e_commerce.py  
 │    ├─── produk_cleaned.csv  
 │    ├─── item_cleaned.csv  
+│    ├─── requirements.txt
 │    └─── orders_cleaned.csv  
 │  
 ├─── data  
