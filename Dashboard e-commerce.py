@@ -134,7 +134,7 @@ with tab1:
             )
 
     # Buat legenda kategori di sebelah kanan grafik
-    ax.legend(title="Kategori Teratas", loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend(title="Top Categories", loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Adjust layout agar elemen grafik tidak tumpang tindih
     plt.tight_layout()
