@@ -19,41 +19,41 @@ Dashboard interaktif dikembangkan menggunakan **Streamlit** untuk memudahkan eks
 ---
 
 ## **Struktur Direktori**  
+PROYEK ANALISIS DATA
+├───dashboard
+| ├───produk_cleaned.csv
+| ├───item_cleaned.csv
+| ├───orders_cleaned.csv
+| └───Dashboard e-commerce.py
+├───data
+| ├───order_reviews_dataset.csv
+| ├───orders_dataset.csv
+| ├───product_category_name_translation.csv
+| ├───product_dataset.csv
+| ├───products_dataset.csv
+| ├───sellers_dataset.csv
+| ├───customers_dataset.csv
+| ├───orders_items_dataset.csv
+| ├───orders_payments_dataset.csv
+| └───geolocation_dataset.csv
+├───Proyek_Analisis_Data_E_Commerce_Brazilian_Dataset.ipynb
+├───README.md
+└───requirements.txt
+└───url.txt 
 ```
-📦 analisis-penjualan
-│   ├── dashboard.py            # Script utama dashboard
-│
-├── 📂 data/                    # Dataset mentah
-│   ├── orders.csv
-│   ├── order_items.csv
-│   ├── products.csv
-│   ├── customers.csv
-│   ├── sellers.csv
-│
-├── all_data.csv                # Dataset gabungan
-├── exploratory_analysis.ipynb   # Notebook eksplorasi data
-├── README.md                   # Dokumentasi proyek
-├── requirements.txt             # Pustaka yang dibutuhkan
-└── deployment_link.txt          # (Opsional) Link deployment dashboard  
-```
-
----
 
 ## **Panduan Penggunaan**  
 ### **1. Persiapan Awal**  
-Pastikan Python dan pustaka yang diperlukan telah diinstal. Jika belum, jalankan perintah berikut:  
-
+Pastikan Python dan pustaka yang diperlukan telah diinstal. Jika belum, jalankan perintah berikut: 
 ```bash
 pip install -r requirements.txt
 ```
 
 ### **2. Menjalankan Dashboard**  
 Gunakan perintah berikut di terminal untuk menjalankan aplikasi:  
-
 ```bash
-python3 -m streamlit run Dashboard.py
+streamlit run "Dashboard e-commerce.py"
 ```
-
 Dashboard akan terbuka secara otomatis di browser.  
 
 ---
