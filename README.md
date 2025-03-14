@@ -67,7 +67,7 @@ Setelah itu, buka browser dan akses **http://localhost:8501** untuk melihat dash
 3. **Hubungkan ke repo GitHub** dan pilih file `Dashboard e-commerce.py` sebagai entry point.  
 4. Tunggu proses deploy selesai, lalu akses aplikasi di:  
    ```
-   [Your Streamlit App URL]
+   [https://e-commerce-public-lailaa.streamlit.app/]
    ```
 
 ---
