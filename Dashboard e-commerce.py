@@ -64,60 +64,45 @@ with tab1:
     
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
 
-    # Sales Trend Over Time (Yearly) with Dominant Categories
+    # Sales Trend Over Time (Yearly) with Top Categories
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
     df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
 
-    # Grup berdasarkan tahun dan kategori produk (hanya kategori yang difilter)
-    sales_by_year_category = df_filtered.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
+    # Ambil 5 kategori teratas berdasarkan total penjualan
+    top_categories = df_filtered.groupby('product_category_name')['price'].sum().nlargest(5).index.tolist()
 
-    # Ambil kategori yang benar-benar muncul dalam grafik
-    categories_in_chart = sales_by_year_category['product_category_name'].unique()
+    # Filter data hanya untuk kategori teratas
+    df_top_categories = df_filtered[df_filtered['product_category_name'].isin(top_categories)]
 
-    # Total penjualan per tahun
-    sales_trend = df_filtered.groupby('Year')['price'].sum().reset_index()
-
-    # Gabungkan dengan kategori yang muncul dalam grafik
-    sales_trend = sales_trend.merge(sales_by_year_category[['Year', 'product_category_name']], on='Year', how='left')
+    # Grup berdasarkan tahun dan kategori produk (hanya kategori teratas)
+    sales_by_year_top_categories = df_top_categories.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
 
     # Buat grafik
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(12, 6))
-    colors = sns.color_palette("husl", len(categories_in_chart))
+    colors = sns.color_palette("husl", len(top_categories))
 
     # Plot bar chart
-    sns.barplot(data=sales_trend, x='Year', y='price', ax=ax, palette=colors)
-    ax.set_title("Tren Penjualan per Tahun dengan Kategori Dominan", fontsize=12, fontweight='bold')
+    sns.barplot(data=sales_by_year_top_categories, x='Year', y='price', hue='product_category_name', ax=ax, palette=colors)
+    ax.set_title("Tren Penjualan per Tahun dengan Kategori Teratas", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
     # Tambahkan label total penjualan di atas batang grafik
-    for i, row in sales_trend.iterrows():
-        total_sales_label = f"${row['price']:,.0f}"
-        ax.text(i, row['price'] * 1.02, total_sales_label, 
+    for p in ax.patches:
+        height = p.get_height()
+        ax.text(p.get_x() + p.get_width() / 2., height * 1.02, f"${height:,.0f}", 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
-    # Buat legenda hanya untuk kategori yang muncul dalam grafik
-    if len(categories_in_chart) > 0:
-        legend_labels = categories_in_chart
-        legend_colors = colors[:len(legend_labels)]  # Ambil warna sesuai jumlah kategori
-
-        # Buat patch untuk legenda
-        patches = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=legend_colors[i], markersize=10) 
-                   for i in range(len(legend_labels))]
-
-        # Tambahkan legenda di sebelah kanan grafik
-        ax.legend(patches, legend_labels, title="Kategori Dominan", loc='center left', bbox_to_anchor=(1, 0.5))
-    else:
-        # Jika tidak ada kategori yang muncul, hapus legenda
-        ax.legend().remove()
+    # Buat legenda kategori di sebelah kanan grafik
+    ax.legend(title="Kategori Teratas", loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Adjust layout agar legenda tidak terpotong
     plt.tight_layout()
 
     st.pyplot(fig)
-    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the most sold product category each year. This insight helps in identifying trends in product demand.")
+    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the top 5 best-selling product categories each year. This insight helps in identifying trends in product demand.")
 
 with tab2:
     # Top Product Categories
