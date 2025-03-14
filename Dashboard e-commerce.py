@@ -93,7 +93,7 @@ with tab1:
     for p in ax.patches:
         height = p.get_height()
         if height > 0:  # Pastikan hanya label dengan nilai > 0 yang ditampilkan
-        ax.text(p.get_x() + p.get_width() / 2., height * 1.02, f"${height:,.0f}", 
+            ax.text(p.get_x() + p.get_width() / 2., height * 1.02, f"${height:,.0f}", 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
     # Buat legenda kategori di sebelah kanan grafik
