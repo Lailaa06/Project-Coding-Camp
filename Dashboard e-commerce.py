@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from babel.numbers import format_currency  # Ganti locale dengan babel
+from babel.numbers import format_currency
 
 # Caching data untuk mempercepat loading
 @st.cache_data
@@ -85,15 +85,22 @@ with tab1:
 
     # Plot bar chart
     sns.barplot(data=sales_by_year_top_categories, x='Year', y='price', hue='product_category_name', ax=ax, palette=colors)
+
+    # **✅ SOLUSI**: Menggunakan skala logaritmik pada sumbu Y agar batang kecil lebih terlihat
+    ax.set_yscale("log")
+
+    # **✅ Tambahkan garis tren untuk memperjelas perbedaan antar tahun**
+    sns.lineplot(data=sales_by_year_top_categories, x='Year', y='price', hue='product_category_name', ax=ax, 
+                 marker='o', linestyle='dashed', palette=colors)
+
     ax.set_title("Tren Penjualan per Tahun dengan Kategori Teratas", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
-    ax.set_ylabel("Total Penjualan ($)", fontsize=12)
+    ax.set_ylabel("Total Penjualan ($) (Log Scale)", fontsize=12)
 
     # Tambahkan label total penjualan di atas batang grafik
     for p in ax.patches:
         height = p.get_height()
-        if height > 0:  # Pastikan hanya label dengan nilai > 0 yang ditampilkan
-            ax.text(p.get_x() + p.get_width() / 2., height * 1.02, f"${height:,.0f}", 
+        ax.text(p.get_x() + p.get_width() / 2., height * 1.02, f"${height:,.0f}", 
                 ha='center', fontsize=10, color='black', fontweight='bold')
 
     # Buat legenda kategori di sebelah kanan grafik
@@ -134,7 +141,7 @@ with tab2:
     top_products.index += 1
     top_products.rename_axis("No", inplace=True)
     
-    top_products['price'] = top_products['price'].apply(lambda x: format_currency(x, 'USD', locale='en_US'))  # Ganti locale dengan babel
+    top_products['price'] = top_products['price'].apply(lambda x: format_currency(x, 'USD', locale='en_US'))
     top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
     
     st.write(top_products[['Product ID', 'Product Category','price']])
