@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from babel.numbers import format_currency
+from babel.numbers import format_currency  # Ganti locale dengan babel
 
 # Caching data untuk mempercepat loading
 @st.cache_data
@@ -48,22 +48,7 @@ st.write("🚀 This dashboard helps analyze sales trends and product performance
 
 # Membagi halaman menjadi dua tabs
 tab1, tab2 = st.tabs(["📈 Sales Analysis", "🏆 Best Products"])
-
 with tab1:
-    # KPI Metrics
-    st.subheader("🏅 Key Metrics")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
-
-    # Ensure 'price' is numeric and handle NaN values
-    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
-
-    # Total Revenue (menggunakan babel)
-    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
-    col2.metric("💵 Total Revenue", total_revenue)
-    
-    col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
-
     # Sales Trend Over Time (Yearly) with Top Categories
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
@@ -85,28 +70,27 @@ with tab1:
 
     # Plot bar chart
     sns.barplot(data=sales_by_year_top_categories, x='Year', y='price', hue='product_category_name', ax=ax, palette=colors)
-
-    # **✅ SOLUSI**: Menggunakan skala logaritmik pada sumbu Y agar batang kecil lebih terlihat
-    ax.set_yscale("log")
-
-    # **✅ Tambahkan garis tren untuk memperjelas perbedaan antar tahun**
-    sns.lineplot(data=sales_by_year_top_categories, x='Year', y='price', hue='product_category_name', ax=ax, 
-                 marker='o', linestyle='dashed', palette=colors)
-
     ax.set_title("Tren Penjualan per Tahun dengan Kategori Teratas", fontsize=12, fontweight='bold')
     ax.set_xlabel("Tahun", fontsize=12)
-    ax.set_ylabel("Total Penjualan ($) (Log Scale)", fontsize=12)
+    ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
     # Tambahkan label total penjualan di atas batang grafik
     for p in ax.patches:
         height = p.get_height()
-        ax.text(p.get_x() + p.get_width() / 2., height * 1.02, f"${height:,.0f}", 
-                ha='center', fontsize=10, color='black', fontweight='bold')
+        ax.text(
+            p.get_x() + p.get_width() / 2.,  # Posisi horizontal (tengah batang)
+            height + max(sales_by_year_top_categories['price']) * 0.01,  # Posisi vertikal (sedikit di atas batang)
+            f"${height:,.0f}",  # Teks label
+            ha='center',  # Posisi horizontal teks (center)
+            fontsize=8,  # Ukuran font lebih kecil
+            color='black',  # Warna teks
+            fontweight='bold'  # Ketebalan teks
+        )
 
     # Buat legenda kategori di sebelah kanan grafik
     ax.legend(title="Kategori Teratas", loc='center left', bbox_to_anchor=(1, 0.5))
 
-    # Adjust layout agar legenda tidak terpotong
+    # Adjust layout agar elemen grafik tidak tumpang tindih
     plt.tight_layout()
 
     st.pyplot(fig)
@@ -141,7 +125,7 @@ with tab2:
     top_products.index += 1
     top_products.rename_axis("No", inplace=True)
     
-    top_products['price'] = top_products['price'].apply(lambda x: format_currency(x, 'USD', locale='en_US'))
+    top_products['price'] = top_products['price'].apply(lambda x: format_currency(x, 'USD', locale='en_US'))  # Ganti locale dengan babel
     top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
     
     st.write(top_products[['Product ID', 'Product Category','price']])
