@@ -19,28 +19,31 @@ Dashboard interaktif dikembangkan menggunakan **Streamlit** untuk memudahkan eks
 ---
 
 ## **Struktur Direktori**  
-PROYEK ANALISIS DATA
-├───dashboard
-| ├───produk_cleaned.csv
-| ├───item_cleaned.csv
-| ├───orders_cleaned.csv
-| └───Dashboard e-commerce.py
-├───data
-| ├───order_reviews_dataset.csv
-| ├───orders_dataset.csv
-| ├───product_category_name_translation.csv
-| ├───product_dataset.csv
-| ├───products_dataset.csv
-| ├───sellers_dataset.csv
-| ├───customers_dataset.csv
-| ├───orders_items_dataset.csv
-| ├───orders_payments_dataset.csv
-| └───geolocation_dataset.csv
-├───Proyek_Analisis_Data_E_Commerce_Brazilian_Dataset.ipynb
-├───README.md
-└───requirements.txt
-└───url.txt 
-```
+PROYEK ANALISIS DATA  
+├─── dashboard  
+│    ├─── Dashboard_e_commerce.py  
+│    ├─── produk_cleaned.csv  
+│    ├─── item_cleaned.csv  
+│    └─── orders_cleaned.csv  
+│  
+├─── data  
+│    ├─── customers_dataset.csv  
+│    ├─── geolocation_dataset.csv  
+│    ├─── order_reviews_dataset.csv  
+│    ├─── orders_dataset.csv  
+│    ├─── orders_items_dataset.csv  
+│    ├─── orders_payments_dataset.csv  
+│    ├─── product_category_name_translation.csv  
+│    ├─── product_dataset.csv  
+│    ├─── products_dataset.csv  
+│    ├─── sellers_dataset.csv  
+│    └─── orders_items_dataset.csv  
+│  
+├─── Proyek_Analisis_Data_E_Commerce_Brazilian_Dataset.ipynb  
+├─── README.md  
+├─── requirements.txt  
+└─── url.txt  
+
 
 ## **Instalasi & Menjalankan Aplikasi**  
 
