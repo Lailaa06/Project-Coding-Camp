@@ -74,18 +74,22 @@ with tab1:
     ax.set_xlabel("Tahun", fontsize=12)
     ax.set_ylabel("Total Penjualan ($)", fontsize=12)
 
+    # Hitung threshold (1% dari total penjualan maksimum)
+    threshold = max(sales_by_year_top_categories['price']) * 0.01
+
     # Tambahkan label total penjualan di atas batang grafik
     for p in ax.patches:
         height = p.get_height()
-        ax.text(
-            p.get_x() + p.get_width() / 2.,  # Posisi horizontal (tengah batang)
-            height + max(sales_by_year_top_categories['price']) * 0.01,  # Posisi vertikal (sedikit di atas batang)
-            f"${height:,.0f}",  # Teks label
-            ha='center',  # Posisi horizontal teks (center)
-            fontsize=8,  # Ukuran font lebih kecil
-            color='black',  # Warna teks
-            fontweight='bold'  # Ketebalan teks
-        )
+        if height >= threshold:  # Hanya tampilkan label jika total penjualan melebihi threshold
+            ax.text(
+                p.get_x() + p.get_width() / 2.,  # Posisi horizontal (tengah batang)
+                height + max(sales_by_year_top_categories['price']) * 0.01,  # Posisi vertikal (sedikit di atas batang)
+                f"${height:,.0f}",  # Teks label
+                ha='center',  # Posisi horizontal teks (center)
+                fontsize=8,  # Ukuran font lebih kecil
+                color='black',  # Warna teks
+                fontweight='bold'  # Ketebalan teks
+            )
 
     # Buat legenda kategori di sebelah kanan grafik
     ax.legend(title="Kategori Teratas", loc='center left', bbox_to_anchor=(1, 0.5))
