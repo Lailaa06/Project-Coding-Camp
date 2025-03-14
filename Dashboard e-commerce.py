@@ -116,7 +116,7 @@ with tab1:
     if not sales_by_year_top_categories.empty and 'price' in sales_by_year_top_categories.columns:
         threshold = max(sales_by_year_top_categories['price']) * 0.01
     else:
-        st.warning("Tidak ada data penjualan yang memenuhi kriteria filter atau kolom 'price' tidak ditemukan.")
+        st.warning("No sales recorded for the selected filter combination. Please try selecting different product categories or changing the year filter.")
         threshold = 0  # Atur threshold ke 0 jika data tidak valid
 
     # Tambahkan label total penjualan di atas batang grafik
