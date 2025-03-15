@@ -105,34 +105,36 @@ with tab1:
     kategori_paling_laris = kategori_paling_laris.set_index('product_category')
 
     # Plot bar chart untuk kategori dengan penjualan tertinggi
-    fig, ax = plt.subplots(figsize=(8, 5))
-    bars = ax.bar(kategori_paling_laris.index, kategori_paling_laris['jumlah_terjual'], color='skyblue')
+    if not kategori_paling_laris.empty:  # Periksa apakah data tidak kosong
+        fig, ax = plt.subplots(figsize=(8, 5))
+        bars = ax.bar(kategori_paling_laris.index, kategori_paling_laris['jumlah_terjual'], color='skyblue')
 
-    # Menambahkan label jumlah terjual di atas setiap batang
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,  # Posisi horizontal (tengah batang)
-            height + 10,  # Posisi vertikal (sedikit di atas batang)
-            f'{int(height)}',  # Teks label
-            ha='center',  # Posisi horizontal teks (center)
-            va='bottom',  # Posisi vertikal teks (bottom)
-            fontsize=10,  # Ukuran font
-            color='black',  # Warna teks
-            fontweight='bold'  # Ketebalan teks
-        )
+        # Menambahkan label jumlah terjual di atas setiap batang
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,  # Posisi horizontal (tengah batang)
+                height + 10,  # Posisi vertikal (sedikit di atas batang)
+                f'{int(height)}',  # Teks label
+                ha='center',  # Posisi horizontal teks (center)
+                va='bottom',  # Posisi vertikal teks (bottom)
+                fontsize=10,  # Ukuran font
+                color='black',  # Warna teks
+                fontweight='bold'  # Ketebalan teks
+            )
 
-    # Menyesuaikan tampilan sumbu x
-    ax.set_xticks(range(len(kategori_paling_laris.index)))  # Pastikan ada tick untuk setiap kategori
-    ax.set_xticklabels(kategori_paling_laris.index, rotation=45, ha='right')
+        # Menyesuaikan tampilan sumbu x
+        ax.set_xticks(range(len(kategori_paling_laris.index)))  # Pastikan ada tick untuk setiap kategori
+        ax.set_xticklabels(kategori_paling_laris.index, rotation=45, ha='right')
 
-    # Menambahkan judul dan label
-    ax.set_title('5 Kategori dengan Penjualan Tertinggi')
-    ax.set_ylabel('Jumlah Terjual')
+        # Menambahkan judul dan label
+        ax.set_title('5 Kategori dengan Penjualan Tertinggi')
+        ax.set_ylabel('Jumlah Terjual')
 
-    # Menampilkan grafik
-    st.pyplot(fig)
-        else:
+        # Menampilkan grafik
+        st.pyplot(fig)
+    else:
+        # Tampilkan pesan peringatan jika data kosong
         st.warning("⚠️ No sales data available for the selected categories. Please adjust your date range, years, or product categories and try again.")
 
 with tab2:
