@@ -103,35 +103,45 @@ with tab1:
     # Pivot data untuk memudahkan plotting
     tren_terlaris = sales_by_year_top_categories.pivot_table(index='Year', columns='product_category_name', values='price', aggfunc='sum').reset_index()
 
-    # Plot
-    fig, ax = plt.subplots(figsize=(10, 6))
+    # Periksa apakah data valid
+    if tren_terlaris.empty or tren_terlaris.iloc[:, 1:].empty:
+        st.warning("⚠️ No sales data available for the selected filters. Please adjust your filters and try again.")
+    else:
+        # Plot
+        fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Buat bar chart
-    bars = ax.bar(tren_terlaris['Year'].astype(int), tren_terlaris.iloc[:, 1:].values.T, label=tren_terlaris.columns[1:])
+        # Buat bar chart
+        bars = ax.bar(tren_terlaris['Year'].astype(int), tren_terlaris.iloc[:, 1:].values.T, label=tren_terlaris.columns[1:])
 
-    # Tambahkan label jumlah terjual di atas bar
-    for bar in bars:
-        for rect in bar:
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2, height + 200, f'{int(height)}',
-                    ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
+        # Tambahkan label jumlah terjual di atas bar
+        for bar in bars:
+            for rect in bar:
+                height = rect.get_height()
+                if not pd.isna(height):  # Pastikan height bukan NaN
+                    ax.text(rect.get_x() + rect.get_width()/2, height + 200, f'{int(height)}',
+                            ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
 
-    # Tambahkan label kategori di bawah sumbu x
-    for i, category in enumerate(tren_terlaris.columns[1:]):
-        ax.text(bars[i][0].get_x() + bars[i][0].get_width()/2, -500, category,
-                ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
+        # Tambahkan label kategori di bawah sumbu x
+        for i, category in enumerate(tren_terlaris.columns[1:]):
+            ax.text(bars[i][0].get_x() + bars[i][0].get_width()/2, -500, category,
+                    ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
 
-    ax.set_xticks(tren_terlaris['Year'].astype(int))
-    ax.set_xticklabels(tren_terlaris['Year'].astype(int))
-    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
-    ax.set_ylabel('Total Penjualan ($)')
-    ax.legend(title="Top Categories", loc='upper left')
+        ax.set_xticks(tren_terlaris['Year'].astype(int))
+        ax.set_xticklabels(tren_terlaris['Year'].astype(int))
+        ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
+        ax.set_ylabel('Total Penjualan ($)')
+        ax.legend(title="Top Categories", loc='upper left')
 
-    plt.ylim(0, tren_terlaris.iloc[:, 1:].values.max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
-    plt.tight_layout()
+        # Atur batas sumbu y
+        y_max = tren_terlaris.iloc[:, 1:].values.max()
+        if not pd.isna(y_max):  # Pastikan y_max bukan NaN
+            plt.ylim(0, y_max + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
+        else:
+            plt.ylim(0, 1000)  # Batas default jika y_max NaN
 
-    st.pyplot(fig)
-    st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the top 5 best-selling product categories each year. This insight helps in identifying trends in product demand.")
+        plt.tight_layout()
+        st.pyplot(fig)
+        st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the top 5 best-selling product categories each year. This insight helps in identifying trends in product demand.")
 
 with tab2:
     # Top Product Categories
