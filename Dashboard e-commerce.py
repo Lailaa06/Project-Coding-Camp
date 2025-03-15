@@ -90,8 +90,6 @@ with tab1:
     # Sales Trend Over Time (Yearly) with Top Categories
     st.subheader("📈 Sales Trend Over Time (Yearly)")
 
-    df_filtered['Year'] = df_filtered['order_purchase_timestamp'].dt.year
-
     # Ambil 5 kategori teratas berdasarkan total penjualan
     top_categories = df_filtered.groupby('product_category_name')['price'].sum().nlargest(5).index.tolist()
 
@@ -99,44 +97,37 @@ with tab1:
     df_top_categories = df_filtered[df_filtered['product_category_name'].isin(top_categories)]
 
     # Grup berdasarkan tahun dan kategori produk (hanya kategori teratas)
-    sales_by_year_top_categories = df_top_categories.groupby(['Year', 'product_category_name'])['price'].sum().reset_index()
+    sales_by_year_top_categories = df_top_categories.groupby(['order_purchase_timestamp', 'product_category_name'])['price'].sum().reset_index()
+    sales_by_year_top_categories['Year'] = sales_by_year_top_categories['order_purchase_timestamp'].dt.year
 
-    # Buat grafik
-    sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 6))
-    colors = sns.color_palette("husl", len(top_categories))
+    # Pivot data untuk memudahkan plotting
+    tren_terlaris = sales_by_year_top_categories.pivot_table(index='Year', columns='product_category_name', values='price', aggfunc='sum').reset_index()
 
-    # Plot bar chart
-    sns.barplot(data=sales_by_year_top_categories, x='Year', y='price', hue='product_category_name', ax=ax, palette=colors)
-    ax.set_title("Tren Penjualan per Tahun dengan Kategori Teratas", fontsize=12, fontweight='bold')
-    ax.set_xlabel("Tahun", fontsize=12)
-    ax.set_ylabel("Total Penjualan ($)", fontsize=12)
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Hitung threshold (1% dari total penjualan maksimum)
-    if not sales_by_year_top_categories.empty and 'price' in sales_by_year_top_categories.columns:
-        threshold = max(sales_by_year_top_categories['price']) * 0.01
-    else:
-        st.warning("No sales recorded for the selected filter combination. Please try selecting different product categories or changing the year filter.")
-        threshold = 0  # Atur threshold ke 0 jika data tidak valid
+    # Buat bar chart
+    bars = ax.bar(tren_terlaris['Year'].astype(int), tren_terlaris.iloc[:, 1:].values.T, label=tren_terlaris.columns[1:])
 
-    # Tambahkan label total penjualan di atas batang grafik
-    for p in ax.patches:
-        height = p.get_height()
-        if height >= threshold:  # Hanya tampilkan label jika total penjualan melebihi threshold
-            ax.text(
-                p.get_x() + p.get_width() / 2.,  # Posisi horizontal (tengah batang)
-                height + max(sales_by_year_top_categories['price']) * 0.01,  # Posisi vertikal (sedikit di atas batang)
-                f"${height:,.0f}",  # Teks label
-                ha='center',  # Posisi horizontal teks (center)
-                fontsize=8,  # Ukuran font lebih kecil
-                color='black',  # Warna teks
-                fontweight='bold'  # Ketebalan teks
-            )
+    # Tambahkan label jumlah terjual di atas bar
+    for bar in bars:
+        for rect in bar:
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width()/2, height + 200, f'{int(height)}',
+                    ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
 
-    # Buat legenda kategori di sebelah kanan grafik
-    ax.legend(title="Top Categories", loc='center left', bbox_to_anchor=(1, 0.5))
+    # Tambahkan label kategori di bawah sumbu x
+    for i, category in enumerate(tren_terlaris.columns[1:]):
+        ax.text(bars[i][0].get_x() + bars[i][0].get_width()/2, -500, category,
+                ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
 
-    # Adjust layout agar elemen grafik tidak tumpang tindih
+    ax.set_xticks(tren_terlaris['Year'].astype(int))
+    ax.set_xticklabels(tren_terlaris['Year'].astype(int))
+    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
+    ax.set_ylabel('Total Penjualan ($)')
+    ax.legend(title="Top Categories", loc='upper left')
+
+    plt.ylim(0, tren_terlaris.iloc[:, 1:].values.max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
     plt.tight_layout()
 
     st.pyplot(fig)
