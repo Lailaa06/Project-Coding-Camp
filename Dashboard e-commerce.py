@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from babel.numbers import format_currency  # Ganti locale dengan babel
 
 # Caching data untuk mempercepat loading
 @st.cache_data
@@ -81,8 +80,8 @@ with tab1:
     # Ensure 'price' is numeric and handle NaN values
     df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
 
-    # Total Revenue (menggunakan babel)
-    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
+    # Total Revenue (menggunakan f-string untuk format mata uang)
+    total_revenue = f"${df_filtered['price'].sum():,.2f}"  # Format dengan simbol $ dan 2 desimal
     col2.metric("💵 Total Revenue", total_revenue)
     
     col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
@@ -191,7 +190,7 @@ with tab2:
     
     for p in ax.patches:
         width = p.get_width()
-        ax.text(width + max(top_categories['price']) * 0.05, p.get_y() + p.get_height()/1, f'{width:,.0f}', ha='left', fontsize=10, color='black', fontweight='bold')
+        ax.text(width + max(top_categories['price']) * 0.05, p.get_y() + p.get_height()/1, f'${width:,.2f}', ha='left', fontsize=10, color='black', fontweight='bold')
     
     st.pyplot(fig)
     st.write(f"📌The categories above represent the products with the highest sales based on the filters you selected from {start_date} to {end_date}.")
@@ -206,7 +205,8 @@ with tab2:
     top_products.index += 1
     top_products.rename_axis("No", inplace=True)
     
-    top_products['price'] = top_products['price'].apply(lambda x: format_currency(x, 'USD', locale='en_US'))  # Ganti locale dengan babel
+    # Format harga menggunakan f-string
+    top_products['price'] = top_products['price'].apply(lambda x: f"${x:,.2f}")  # Format dengan simbol $ dan 2 desimal
     top_products.rename(columns={'product_category_name': 'Product Category', 'product_id': 'Product ID'}, inplace=True)
     
     st.write(top_products[['Product ID', 'Product Category','price']])
