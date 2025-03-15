@@ -126,35 +126,37 @@ with tab1:
     tren_terlaris.rename(columns={'order_id': 'jumlah_terjual', 'product_category_name': 'product_category', 'order_purchase_timestamp': 'year'}, inplace=True)
 
     # Ambil kategori dengan penjualan tertinggi per tahun
-    tren_terlaris = tren_terlaris.loc[tren_terlaris.groupby('year')['jumlah_terjual'].idxmax()]
+    if not tren_terlaris.empty:
+        tren_terlaris = tren_terlaris.loc[tren_terlaris.groupby('year')['jumlah_terjual'].idxmax()]
 
-    # Buat plot
-    fig, ax = plt.subplots(figsize=(8, 5))
+        # Buat plot
+        fig, ax = plt.subplots(figsize=(8, 5))
 
-    # Buat bar chart
-    bars = ax.bar(tren_terlaris['year'].astype(int), tren_terlaris['jumlah_terjual'], color=['green', 'blue', 'red'])
+        # Buat bar chart
+        bars = ax.bar(tren_terlaris['year'].astype(int), tren_terlaris['jumlah_terjual'], color=['green', 'blue', 'red'])
 
-    # Tambahkan label jumlah terjual di atas bar
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, height + 200, f'{int(height)}',
-                ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
+        # Tambahkan label jumlah terjual di atas bar
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2, height + 200, f'{int(height)}',
+                    ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
 
-    # Tambahkan label kategori di bawah sumbu x
-    for i, category in enumerate(tren_terlaris['product_category']):
-        ax.text(bars[i].get_x() + bars[i].get_width()/2, -500, category,
-                ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
+        # Tambahkan label kategori di bawah sumbu x
+        for i, category in enumerate(tren_terlaris['product_category']):
+            ax.text(bars[i].get_x() + bars[i].get_width()/2, -500, category,
+                    ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
 
-    ax.set_xticks(tren_terlaris['year'].astype(int))
-    ax.set_xticklabels(tren_terlaris['year'].astype(int))
-    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
-    ax.set_ylabel('Jumlah Terjual')
+        ax.set_xticks(tren_terlaris['year'].astype(int))
+        ax.set_xticklabels(tren_terlaris['year'].astype(int))
+        ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
+        ax.set_ylabel('Jumlah Terjual')
 
-    plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
+        plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
 
-    # Menampilkan grafik
-    st.pyplot(fig)
-
+        # Menampilkan grafik
+        st.pyplot(fig)
+    else:
+        st.warning("⚠️ Tidak ada data penjualan yang tersedia untuk kategori yang dipilih. Silakan sesuaikan filter Anda.")
 
 with tab2:
     # Top Product Categories
