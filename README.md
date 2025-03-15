@@ -40,7 +40,7 @@ PROYEK ANALISIS DATA
 │    ├─── sellers_dataset.csv  
 │    └─── orders_items_dataset.csv  
 │  
-├─── Proyek_Analisis_Data_E_Commerce_Brazilian_Dataset.ipynb  
+├─── Proyek_Analisis_Data_E_Commerce_Brazilian_Dataset (2).ipynb  
 ├─── README.md  
 ├─── requirements.txt  
 └─── url.txt  
