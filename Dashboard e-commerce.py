@@ -73,75 +73,56 @@ st.write("🚀 This dashboard helps analyze sales trends and product performance
 tab1, tab2 = st.tabs(["📈 Sales Analysis", "🏆 Best Products"])
 
 with tab1:
-    # KPI Metrics
-    st.subheader("🏅 Key Metrics")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
+    import pandas as pd
+    import matplotlib.pyplot as plt
 
-    # Ensure 'price' is numeric and handle NaN values
-    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
+    # Merge produk_df & item_df
+    products_items_df = pd.merge(
+        products[['product_id', 'product_category_name']],
+        order_items[['order_id', 'order_item_id', 'product_id', 'shipping_limit_date']],
+        on='product_id',
+        how='inner'
+    )
 
-    # Total Revenue (menggunakan babel)
-    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
-    col2.metric("💵 Total Revenue", total_revenue)
-    
-    col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
+    # Mengubah nama kolom
+    products_items_df.rename(columns={
+        'product_category_name': 'product_category',
+        'order_item_id': 'jumlah_terjual'
+    }, inplace=True)
 
-    # Sales Trend Over Time (Yearly) with Top Categories
-    st.subheader("📈 Sales Trend Over Time (Yearly)")
+    # Memindahkan kolom 'product_category' ke posisi terakhir
+    kolom_urutan = [col for col in products_items_df.columns if col != 'product_category'] + ['product_category']
+    products_items_df = products_items_df[kolom_urutan]
 
-    # Ambil 5 kategori teratas berdasarkan total penjualan
-    top_categories = df_filtered.groupby('product_category_name')['price'].sum().nlargest(5).index.tolist()
-
-    # Filter data hanya untuk kategori teratas
-    df_top_categories = df_filtered[df_filtered['product_category_name'].isin(top_categories)]
-
-    # Grup berdasarkan tahun dan kategori produk (hanya kategori teratas)
-    sales_by_year_top_categories = df_top_categories.groupby(['order_purchase_timestamp', 'product_category_name'])['price'].sum().reset_index()
-    sales_by_year_top_categories['Year'] = sales_by_year_top_categories['order_purchase_timestamp'].dt.year
-
-    # Pivot data untuk memudahkan plotting
-    tren_terlaris = sales_by_year_top_categories.pivot_table(index='Year', columns='product_category_name', values='price', aggfunc='sum').reset_index()
-
-    # Periksa apakah data valid
-    if tren_terlaris.empty or tren_terlaris.iloc[:, 1:].empty:
-        st.warning("⚠️ No sales data available for the selected filters. Please adjust your filters and try again.")
+    # Menghitung jumlah penjualan per kategori
+    if 'product_category' in products_items_df.columns:
+        count_kategori = products_items_df['product_category'].value_counts()
     else:
-        # Plot
-        fig, ax = plt.subplots(figsize=(10, 6))
+        raise ValueError("Kolom 'product_category' tidak ditemukan dalam dataframe!")
 
-        # Buat bar chart
-        bars = ax.bar(tren_terlaris['Year'].astype(int), tren_terlaris.iloc[:, 1:].values.T, label=tren_terlaris.columns[1:])
+    # Membuat DataFrame untuk kategori paling laris
+    kategori_paling_laris = pd.DataFrame({
+        'product_category': count_kategori.index[:5],
+        'jumlah_terjual': count_kategori.values[:5]
+    })
 
-        # Tambahkan label jumlah terjual di atas bar
-        for bar in bars:
-            for rect in bar:
-                height = rect.get_height()
-                if not pd.isna(height):  # Pastikan height bukan NaN
-                    ax.text(rect.get_x() + rect.get_width()/2, height + 200, f'{int(height)}',
-                            ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
+    # Pastikan DataFrame sudah memiliki index yang sesuai
+    kategori_paling_laris = kategori_paling_laris.set_index('product_category')
 
-        # Tambahkan label kategori di bawah sumbu x
-        for i, category in enumerate(tren_terlaris.columns[1:]):
-            ax.text(bars[i][0].get_x() + bars[i][0].get_width()/2, -500, category,
-                    ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
+    # Plot
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(kategori_paling_laris.index, kategori_paling_laris['jumlah_terjual'], color='skyblue')
 
-        ax.set_xticks(tren_terlaris['Year'].astype(int))
-        ax.set_xticklabels(tren_terlaris['Year'].astype(int))
-        ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
-        ax.set_ylabel('Total Penjualan ($)')
-        ax.legend(title="Top Categories", loc='upper left')
+    # Menyesuaikan tampilan sumbu x
+    ax.set_xticks(range(len(kategori_paling_laris.index)))  # Pastikan ada tick untuk setiap kategori
+    ax.set_xticklabels(kategori_paling_laris.index, rotation=45, ha='right')
 
-        # Atur batas sumbu y
-        y_max = tren_terlaris.iloc[:, 1:].values.max()
-        if not pd.isna(y_max):  # Pastikan y_max bukan NaN
-            plt.ylim(0, y_max + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
-        else:
-            plt.ylim(0, 1000)  # Batas default jika y_max NaN
+    # Menambahkan judul dan label
+    ax.set_title('5 Kategori dengan Penjualan Tertinggi')
+    ax.set_ylabel('Jumlah Terjual')
 
-        plt.tight_layout()
-        st.pyplot(fig)
-        st.write(f"💡 The chart above shows the sales trend from {start_date} to {end_date}, highlighting the top 5 best-selling product categories each year. This insight helps in identifying trends in product demand.")
+    # Menampilkan grafik
+    st.pyplot(fig)
 
 with tab2:
     # Top Product Categories
