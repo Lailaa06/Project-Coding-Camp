@@ -73,39 +73,31 @@ st.write("🚀 This dashboard helps analyze sales trends and product performance
 tab1, tab2 = st.tabs(["📈 Sales Analysis", "🏆 Best Products"])
 
 with tab1:
-    import pandas as pd
-    import matplotlib.pyplot as plt
+    # KPI Metrics
+    st.subheader("🏅 Key Metrics")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("📦 Total Orders", df_filtered['order_id'].nunique())
 
-    # Gunakan data yang sudah difilter
-    df_filtered = filtered_df.copy()  
+    # Ensure 'price' is numeric and handle NaN values
+    df_filtered['price'] = pd.to_numeric(df_filtered['price'], errors='coerce').fillna(0)
 
-    # Merge produk_df & item_df berdasarkan data yang sudah difilter
-    products_items_df = pd.merge(
-        df_filtered[['product_id', 'product_category_name']],
-        df_filtered[['order_id', 'order_item_id', 'product_id', 'shipping_limit_date']],
-        on='product_id',
-        how='inner'
-    )
+    # Total Revenue (menggunakan babel)
+    total_revenue = format_currency(df_filtered['price'].sum(), 'USD', locale='en_US')
+    col2.metric("💵 Total Revenue", total_revenue)
+    
+    col3.metric("👤 Unique Customers", df_filtered['customer_id'].nunique())
 
-    # Mengubah nama kolom
-    products_items_df.rename(columns={
-        'product_category_name': 'product_category',
-        'order_item_id': 'jumlah_terjual'
-    }, inplace=True)
+    # ===================== Kategori dengan Penjualan Tertinggi ===================== #
 
-    # Memindahkan kolom 'product_category' ke posisi terakhir
-    kolom_urutan = [col for col in products_items_df.columns if col != 'product_category'] + ['product_category']
-    products_items_df = products_items_df[kolom_urutan]
-
-    # Menghitung jumlah penjualan per kategori
-    if 'product_category' in products_items_df.columns:
-        count_kategori = products_items_df['product_category'].value_counts()
+    # Menghitung jumlah penjualan per kategori dari df_filtered
+    if 'product_category_name' in df_filtered.columns:
+        count_kategori = df_filtered['product_category_name'].value_counts()
     else:
-        raise ValueError("Kolom 'product_category' tidak ditemukan dalam dataframe!")
+        raise ValueError("Kolom 'product_category_name' tidak ditemukan dalam dataframe!")
 
     # Membuat DataFrame untuk kategori paling laris
     kategori_paling_laris = pd.DataFrame({
-        'product_category': count_kategori.index[:5],
+        'product_category': count_kategori.index[:5],  # Ambil 5 kategori teratas
         'jumlah_terjual': count_kategori.values[:5]
     })
 
@@ -117,19 +109,19 @@ with tab1:
     ax.bar(kategori_paling_laris.index, kategori_paling_laris['jumlah_terjual'], color='skyblue')
 
     # Menyesuaikan tampilan sumbu x
-    ax.set_xticks(range(len(kategori_paling_laris.index)))  
+    ax.set_xticks(range(len(kategori_paling_laris.index)))  # Pastikan ada tick untuk setiap kategori
     ax.set_xticklabels(kategori_paling_laris.index, rotation=45, ha='right')
 
     # Menambahkan judul dan label
-    ax.set_title('5 Kategori dengan Penjualan Tertinggi (Sesuai Filter)')
+    ax.set_title('5 Kategori dengan Penjualan Tertinggi')
     ax.set_ylabel('Jumlah Terjual')
 
     # Menampilkan grafik
     st.pyplot(fig)
 
-    # ===================== Tambahan: Tren Kategori dengan Penjualan Tertinggi per Tahun ===================== #
+    # ===================== Tren Kategori dengan Penjualan Tertinggi per Tahun ===================== #
 
-    # Gunakan data yang sudah difilter
+    # Hitung tren penjualan tahunan dari df_filtered
     tren_terlaris = df_filtered.groupby([df_filtered['order_purchase_timestamp'].dt.year, 'product_category_name'])[['order_id']].count().reset_index()
     tren_terlaris.rename(columns={'order_id': 'jumlah_terjual', 'product_category_name': 'product_category', 'order_purchase_timestamp': 'year'}, inplace=True)
 
@@ -155,10 +147,10 @@ with tab1:
 
     ax.set_xticks(tren_terlaris['year'].astype(int))
     ax.set_xticklabels(tren_terlaris['year'].astype(int))
-    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun (Sesuai Filter)')
+    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
     ax.set_ylabel('Jumlah Terjual')
 
-    plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  
+    plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
 
     # Menampilkan grafik
     st.pyplot(fig)
