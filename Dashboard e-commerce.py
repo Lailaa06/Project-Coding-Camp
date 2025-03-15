@@ -76,10 +76,13 @@ with tab1:
     import pandas as pd
     import matplotlib.pyplot as plt
 
-    # Merge produk_df & item_df
+    # Gunakan data yang sudah difilter
+    df_filtered = filtered_df.copy()  
+
+    # Merge produk_df & item_df berdasarkan data yang sudah difilter
     products_items_df = pd.merge(
-        products[['product_id', 'product_category_name']],
-        order_items[['order_id', 'order_item_id', 'product_id', 'shipping_limit_date']],
+        df_filtered[['product_id', 'product_category_name']],
+        df_filtered[['order_id', 'order_item_id', 'product_id', 'shipping_limit_date']],
         on='product_id',
         how='inner'
     )
@@ -114,11 +117,11 @@ with tab1:
     ax.bar(kategori_paling_laris.index, kategori_paling_laris['jumlah_terjual'], color='skyblue')
 
     # Menyesuaikan tampilan sumbu x
-    ax.set_xticks(range(len(kategori_paling_laris.index)))  # Pastikan ada tick untuk setiap kategori
+    ax.set_xticks(range(len(kategori_paling_laris.index)))  
     ax.set_xticklabels(kategori_paling_laris.index, rotation=45, ha='right')
 
     # Menambahkan judul dan label
-    ax.set_title('5 Kategori dengan Penjualan Tertinggi')
+    ax.set_title('5 Kategori dengan Penjualan Tertinggi (Sesuai Filter)')
     ax.set_ylabel('Jumlah Terjual')
 
     # Menampilkan grafik
@@ -126,8 +129,8 @@ with tab1:
 
     # ===================== Tambahan: Tren Kategori dengan Penjualan Tertinggi per Tahun ===================== #
 
-    # Gabungkan data dengan order timestamps untuk melihat tren tahunan
-    tren_terlaris = df.groupby([df['order_purchase_timestamp'].dt.year, 'product_category_name'])[['order_id']].count().reset_index()
+    # Gunakan data yang sudah difilter
+    tren_terlaris = df_filtered.groupby([df_filtered['order_purchase_timestamp'].dt.year, 'product_category_name'])[['order_id']].count().reset_index()
     tren_terlaris.rename(columns={'order_id': 'jumlah_terjual', 'product_category_name': 'product_category', 'order_purchase_timestamp': 'year'}, inplace=True)
 
     # Ambil kategori dengan penjualan tertinggi per tahun
@@ -152,10 +155,10 @@ with tab1:
 
     ax.set_xticks(tren_terlaris['year'].astype(int))
     ax.set_xticklabels(tren_terlaris['year'].astype(int))
-    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
+    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun (Sesuai Filter)')
     ax.set_ylabel('Jumlah Terjual')
 
-    plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
+    plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  
 
     # Menampilkan grafik
     st.pyplot(fig)
