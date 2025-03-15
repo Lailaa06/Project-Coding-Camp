@@ -109,7 +109,7 @@ with tab1:
     # Pastikan DataFrame sudah memiliki index yang sesuai
     kategori_paling_laris = kategori_paling_laris.set_index('product_category')
 
-    # Plot
+    # Plot bar chart untuk kategori dengan penjualan tertinggi
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.bar(kategori_paling_laris.index, kategori_paling_laris['jumlah_terjual'], color='skyblue')
 
@@ -123,6 +123,43 @@ with tab1:
 
     # Menampilkan grafik
     st.pyplot(fig)
+
+    # ===================== Tambahan: Tren Kategori dengan Penjualan Tertinggi per Tahun ===================== #
+
+    # Gabungkan data dengan order timestamps untuk melihat tren tahunan
+    tren_terlaris = df.groupby([df['order_purchase_timestamp'].dt.year, 'product_category_name'])[['order_id']].count().reset_index()
+    tren_terlaris.rename(columns={'order_id': 'jumlah_terjual', 'product_category_name': 'product_category', 'order_purchase_timestamp': 'year'}, inplace=True)
+
+    # Ambil kategori dengan penjualan tertinggi per tahun
+    tren_terlaris = tren_terlaris.loc[tren_terlaris.groupby('year')['jumlah_terjual'].idxmax()]
+
+    # Buat plot
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    # Buat bar chart
+    bars = ax.bar(tren_terlaris['year'].astype(int), tren_terlaris['jumlah_terjual'], color=['green', 'blue', 'red'])
+
+    # Tambahkan label jumlah terjual di atas bar
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2, height + 200, f'{int(height)}',
+                ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
+
+    # Tambahkan label kategori di bawah sumbu x
+    for i, category in enumerate(tren_terlaris['product_category']):
+        ax.text(bars[i].get_x() + bars[i].get_width()/2, -500, category,
+                ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
+
+    ax.set_xticks(tren_terlaris['year'].astype(int))
+    ax.set_xticklabels(tren_terlaris['year'].astype(int))
+    ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
+    ax.set_ylabel('Jumlah Terjual')
+
+    plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
+
+    # Menampilkan grafik
+    st.pyplot(fig)
+
 
 with tab2:
     # Top Product Categories
