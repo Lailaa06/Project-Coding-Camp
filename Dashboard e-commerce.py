@@ -132,7 +132,7 @@ with tab1:
 
     # Menampilkan grafik
     st.pyplot(fig)
-    else:
+        else:
         st.warning("⚠️ No sales data available for the selected categories. Please adjust your date range, years, or product categories and try again.")
 
 with tab2:
