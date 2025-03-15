@@ -156,7 +156,7 @@ with tab1:
         # Menampilkan grafik
         st.pyplot(fig)
     else:
-        st.warning("⚠️ Tidak ada data penjualan yang tersedia untuk kategori yang dipilih. Silakan sesuaikan filter Anda.")
+        st.warning("⚠️ No sales data available for the selected categories. Please adjust your date range, years, or product categories and try again.")
 
 with tab2:
     # Top Product Categories
