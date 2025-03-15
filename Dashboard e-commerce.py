@@ -137,6 +137,46 @@ with tab1:
         # Tampilkan pesan peringatan jika data kosong
         st.warning("⚠️ No sales data available for the selected categories. Please adjust your date range, years, or product categories and try again.")
 
+    # ===================== Tren Kategori dengan Penjualan Tertinggi per Tahun ===================== #
+
+    # Hitung tren penjualan tahunan dari df_filtered
+    tren_terlaris = df_filtered.groupby([df_filtered['order_purchase_timestamp'].dt.year, 'product_category_name'])[['order_id']].count().reset_index()
+    tren_terlaris.rename(columns={'order_id': 'jumlah_terjual', 'product_category_name': 'product_category', 'order_purchase_timestamp': 'year'}, inplace=True)
+
+    # Ambil kategori dengan penjualan tertinggi per tahun
+    if not tren_terlaris.empty:  # Periksa apakah data tidak kosong
+        tren_terlaris = tren_terlaris.loc[tren_terlaris.groupby('year')['jumlah_terjual'].idxmax()]
+
+        # Buat plot
+        fig, ax = plt.subplots(figsize=(8, 5))
+
+        # Buat bar chart
+        bars = ax.bar(tren_terlaris['year'].astype(int), tren_terlaris['jumlah_terjual'], color=['green', 'blue', 'red'])
+
+        # Tambahkan label jumlah terjual di atas bar
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2, height + 200, f'{int(height)}',
+                    ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
+
+        # Tambahkan label kategori di bawah sumbu x
+        for i, category in enumerate(tren_terlaris['product_category']):
+            ax.text(bars[i].get_x() + bars[i].get_width()/2, -500, category,
+                    ha='center', va='top', fontsize=10, fontweight='bold', color='black', rotation=30)
+
+        ax.set_xticks(tren_terlaris['year'].astype(int))
+        ax.set_xticklabels(tren_terlaris['year'].astype(int))
+        ax.set_title('Tren Kategori dengan Penjualan Tertinggi per Tahun')
+        ax.set_ylabel('Jumlah Terjual')
+
+        plt.ylim(0, tren_terlaris['jumlah_terjual'].max() + 1000)  # Beri ruang di atas supaya label jumlah tidak mepet
+
+        # Menampilkan grafik
+        st.pyplot(fig)
+    else:
+        # Tampilkan pesan peringatan jika data kosong
+        st.warning("⚠️ No sales data available for the selected categories. Please adjust your date range, years, or product categories and try again.")
+
 with tab2:
     # Top Product Categories
     st.subheader("🏆 Top Selling Product Categories")
